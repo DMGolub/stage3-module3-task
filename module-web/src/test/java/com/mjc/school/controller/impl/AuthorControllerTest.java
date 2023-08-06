@@ -1,7 +1,7 @@
 package com.mjc.school.controller.impl;
 
 import com.mjc.school.service.dto.AuthorRequestDto;
-import com.mjc.school.service.impl.AuthorService;
+import com.mjc.school.service.impl.AuthorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verify;
 class AuthorControllerTest {
 
 	@Mock
-	private AuthorService authorService;
+	private AuthorServiceImpl authorService;
 	@InjectMocks
 	private AuthorController authorController;
 

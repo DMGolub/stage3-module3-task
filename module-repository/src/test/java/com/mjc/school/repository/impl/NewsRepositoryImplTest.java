@@ -1,36 +1,34 @@
 package com.mjc.school.repository.impl;
 
-import com.mjc.school.repository.IdSequence;
+import com.mjc.school.repository.NewsRepository;
+import com.mjc.school.repository.RepositoryTestConfig;
 import com.mjc.school.repository.model.News;
-import org.junit.jupiter.api.BeforeEach;
+import com.mjc.school.repository.util.Util;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(MockitoExtension.class)
-class NewsInMemoryRepositoryTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {RepositoryTestConfig.class})
+class NewsRepositoryImplTest {
 
-	private NewsInMemoryRepository repository;
-
-	@BeforeEach
-	void initSequence() {
-		final IdSequence<Long> longIdSequence = new InMemoryIdSequence<>(1L, prev -> prev + 1);
-		repository = new NewsInMemoryRepository(longIdSequence);
-	}
+	@Autowired
+	private NewsRepository repository;
 
 	@Nested
 	class TestReadAll {
@@ -43,12 +41,16 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void readAll_shouldReturnTwoEntities_whenThereAreTwoEntitiesInTheStorage() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
-			assertEquals(storage, repository.readAll());
+			final List<News> result = repository.readAll();
+
+			assertEquals(2, result.size());
+			assertEquals(1L, result.get(0).getId());
+			assertEquals(2L, result.get(1).getId());
 		}
 	}
 
@@ -58,8 +60,8 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void readById_shouldReturnEmptyOptional_whenThereIsNoEntityWithGivenId() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
@@ -68,12 +70,15 @@ class NewsInMemoryRepositoryTest {
 
 		@Test
 		void readById_shouldReturnEntity_whenEntityWithGivenIdExists() {
-			final long id = 2L;
-			final News expected = createTestNews(id);
-			final List<News> storage = Arrays.asList(createTestNews(1L), expected);
-			storage.forEach(repository::create);
+			News news = Util.createTestNews(null);
+			repository.create(news);
 
-			assertEquals(Optional.of(expected), repository.readById(id));
+			final Optional<News> result = repository.readById(1L);
+
+			assertTrue(result.isPresent());
+			assertEquals(1L, result.get().getId());
+			assertEquals(news.getTitle(), result.get().getTitle());
+			assertEquals(news.getContent(), result.get().getContent());
 		}
 	}
 
@@ -82,25 +87,32 @@ class NewsInMemoryRepositoryTest {
 
 		@Test
 		void create_shouldSaveEntityAndReturnEntityWithId1_whenStorageIsEmpty() {
-			News news = createTestNews(null);
-			News expected = createTestNews(1L);
+			final News news = Util.createTestNews(null);
 
-			assertEquals(expected, repository.create(news));
+			final News result = repository.create(news);
+
+			assertNotNull(result);
+			assertEquals(1L, result.getId());
+			assertEquals(news.getTitle(), result.getTitle());
+			assertEquals(news.getContent(), result.getContent());
 			assertEquals(1, repository.readAll().size());
 		}
 
 		@Test
 		void create_shouldSaveEntityAndReturnEntityWithId3_whenStorageContainsTwoEntities() {
 			final List<News> storage = List.of(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
-			News news = createTestNews(null);
-			News expected = createTestNews(3L);
+			final News news = Util.createTestNews(null);
+			final News result = repository.create(news);
 
-			assertEquals(expected, repository.create(news));
+			assertNotNull(result);
+			assertEquals(3L, result.getId());
+			assertEquals(news.getTitle(), result.getTitle());
+			assertEquals(news.getContent(), result.getContent());
 			assertEquals(3, repository.readAll().size());
 		}
 	}
@@ -109,34 +121,37 @@ class NewsInMemoryRepositoryTest {
 		class TestUpdate {
 
 			@Test
-			void update_shouldThrowNoSuchElementException_whenThereIsNoEntityWithGivenId() {
+			void update_shouldReturnNull_whenThereIsNoEntityWithGivenId() {
 				final List<News> storage = List.of(
-					createTestNews(1L),
-					createTestNews(2L)
+					Util.createTestNews(null),
+					Util.createTestNews(null)
 				);
 				storage.forEach(repository::create);
 
-				News updated = createTestNews(99L);
+				final News updated = Util.createTestNews(99L);
+				final News result = repository.update(updated);
 
-				assertThrows(NoSuchElementException.class, () -> repository.update(updated));
+				assertNull(result);
 			}
 
 			@Test
 			void update_shouldReturnUpdatedEntity_whenEntityIsValid() {
 				final List<News> storage = List.of(
-					createTestNews(1L),
-					createTestNews(2L)
+					Util.createTestNews(null),
+					Util.createTestNews(null)
 				);
 				storage.forEach(repository::create);
 
-				final News updated = createTestNews(2L);
+				final News updated = Util.createTestNews(2L);
 				updated.setTitle("Updated title");
 				updated.setContent("Updated content");
-				updated.setAuthorId(2L);
-				List<News> expected = Arrays.asList(createTestNews(1L), updated);
 
-				assertEquals(updated, repository.update(updated));
-				assertEquals(expected, repository.readAll());
+				final News result = repository.update(updated);
+
+				assertNotNull(result);
+				assertEquals(updated.getId(), result.getId());
+				assertEquals(updated.getTitle(), result.getTitle());
+				assertEquals(updated.getContent(), result.getContent());
 			}
 		}
 
@@ -146,8 +161,8 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void deleteById_shouldReturnFalse_whenIdIsNull() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
@@ -163,8 +178,8 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void deleteById_shouldReturnFalse_whenThereIsNoEntityWithGivenId() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
@@ -174,22 +189,22 @@ class NewsInMemoryRepositoryTest {
 
 		@Test
 		void deleteById_shouldReturnTrue_whenEntityWithGivenIdDeleted() {
-			final long id = 3L;
 			final List<News> storage = new ArrayList<>();
-			storage.add(createTestNews(1L));
-			storage.add(createTestNews(2L));
-			storage.add(createTestNews(id));
-			storage.add(createTestNews(4L));
-			storage.add(createTestNews(5L));
+			storage.add(Util.createTestNews(null));
+			storage.add(Util.createTestNews(null));
+			storage.add(Util.createTestNews(null));
 			storage.forEach(repository::create);
 
-			assertTrue(repository.deleteById(id));
-			assertEquals(4, repository.readAll().size());
+			assertTrue(repository.deleteById(2L));
+			final List<News> result = repository.readAll();
+			assertEquals(2, repository.readAll().size());
+			assertEquals(1L, result.get(0).getId());
+			assertEquals(3L, result.get(1).getId());
 		}
 
 		@Test
 		void deleteById_shouldDeleteEntity_whenItIsSingleEntityInTheStorage() {
-			repository.create(createTestNews(null));
+			repository.create(Util.createTestNews(null));
 
 			assertTrue(repository.deleteById(1L));
 			assertTrue(repository.readAll().isEmpty());
@@ -207,8 +222,8 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void existById_shouldReturnFalse_whenThereIsNoEntityWithGivenId() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
@@ -218,23 +233,12 @@ class NewsInMemoryRepositoryTest {
 		@Test
 		void existById_shouldReturnTrue_whenEntityWithGivenIdExists() {
 			final List<News> storage = Arrays.asList(
-				createTestNews(1L),
-				createTestNews(2L)
+				Util.createTestNews(null),
+				Util.createTestNews(null)
 			);
 			storage.forEach(repository::create);
 
 			assertTrue(repository.existById(2L));
 		}
-	}
-
-	private News createTestNews(Long newsId) {
-		return new News(
-			newsId,
-			"Title",
-			"Content",
-			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
-			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
-			1L
-		);
 	}
 }

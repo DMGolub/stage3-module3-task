@@ -4,7 +4,7 @@ import com.mjc.school.controller.BaseController;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
-import com.mjc.school.service.BaseService;
+import com.mjc.school.service.NewsService;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
 import org.springframework.stereotype.Controller;
@@ -14,9 +14,9 @@ import java.util.List;
 @Controller
 public class NewsController implements BaseController<NewsRequestDto, NewsResponseDto, Long> {
 
-	private final BaseService<NewsRequestDto, NewsResponseDto, Long> newsService;
+	private final NewsService newsService;
 
-	public NewsController(final BaseService<NewsRequestDto, NewsResponseDto, Long> newsService) {
+	public NewsController(final NewsService newsService) {
 		this.newsService = newsService;
 	}
 
@@ -33,19 +33,19 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
 	}
 
 	@Override
-	@CommandHandler(operation = 3)
+	@CommandHandler(operation = 4)
 	public NewsResponseDto create(@CommandBody final NewsRequestDto request) {
 		return newsService.create(request);
 	}
 
 	@Override
-	@CommandHandler(operation = 4)
+	@CommandHandler(operation = 5)
 	public NewsResponseDto update(@CommandBody final NewsRequestDto request) {
 		return newsService.update(request);
 	}
 
 	@Override
-	@CommandHandler(operation = 5)
+	@CommandHandler(operation = 6)
 	public boolean deleteById(@CommandParam(name = "id") final Long id) {
 		return newsService.deleteById(id);
 	}

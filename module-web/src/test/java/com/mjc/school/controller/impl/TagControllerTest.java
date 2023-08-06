@@ -1,7 +1,7 @@
 package com.mjc.school.controller.impl;
 
-import com.mjc.school.service.dto.NewsRequestDto;
-import com.mjc.school.service.impl.NewsServiceImpl;
+import com.mjc.school.service.dto.TagRequestDto;
+import com.mjc.school.service.impl.TagServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,50 +12,50 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class NewsControllerTest {
+class TagControllerTest {
 
 	@Mock
-	private NewsServiceImpl newsService;
+	private TagServiceImpl tagService;
 	@InjectMocks
-	private NewsController newsController;
+	private TagController tagController;
 
 	@Test
 	void create_shouldInvokeServiceSaveMethod_whenInvoked() {
-		final NewsRequestDto request = new NewsRequestDto(null, "Title", "Content", 1L);
+		final TagRequestDto request = new TagRequestDto(null, "Tag Name");
 
-		newsController.create(request);
-		verify(newsService, times(1)).create(request);
+		tagController.create(request);
+		verify(tagService, times(1)).create(request);
 	}
 
 	@Test
 	void readAll_shouldInvokeServiceGetAllMethod_whenInvoked() {
-		newsController.readAll();
-		verify(newsService, times(1)).readAll();
+		tagController.readAll();
+		verify(tagService, times(1)).readAll();
 	}
 
 	@Test
 	void readById_shouldInvokeServiceGetByIdMethod_whenInvoked() {
 		final long id = 1L;
 
-		newsController.readById(id);
+		tagController.readById(id);
 
-		verify(newsService, times(1)).readById(id);
+		verify(tagService, times(1)).readById(id);
 	}
 
 	@Test
 	void update_shouldInvokeServiceUpdateMethod_whenInvoked() {
-		final NewsRequestDto request = new NewsRequestDto(15L, "Title", "Content", 1L);
+		final TagRequestDto request = new TagRequestDto(15L, "Tag Name");
 
-		newsController.update(request);
-		verify(newsService, times(1)).update(request);
+		tagController.update(request);
+		verify(tagService, times(1)).update(request);
 	}
 
 	@Test
 	void deleteById_shouldInvokeServiceDelete_whenInvoked() {
 		final long id = 1L;
 
-		newsController.deleteById(id);
+		tagController.deleteById(id);
 
-		verify(newsService, times(1)).deleteById(id);
+		verify(tagService, times(1)).deleteById(id);
 	}
 }

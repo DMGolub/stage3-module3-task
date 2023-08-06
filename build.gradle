@@ -24,7 +24,11 @@ subprojects {
 		testImplementation "org.springframework:spring-test:$springVersion"
 		testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
 		testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-		testImplementation "com.tngtech.archunit:archunit:$archUnitVersion"
+		testImplementation "com.tngtech.archunit:archunit-junit5:$archUnitVersion"
+
+		implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springDataJpaVersion"
+		implementation "javax.xml.bind:jaxb-api:$jaxbApiVersion"
+		runtimeOnly 'com.h2database:h2:2.2.220'
 	}
 
 	test {

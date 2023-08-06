@@ -1,9 +1,10 @@
 package com.mjc.school.service.impl;
 
-import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.model.Author;
+import com.mjc.school.repository.AuthorRepository;
+import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.model.News;
-import com.mjc.school.service.NewsMapper;
+import com.mjc.school.service.NewsService;
+import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.ServiceAopTestConfiguration;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.exception.ValidationException;
@@ -25,14 +26,14 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ServiceAopTestConfiguration.class})
-public class NewsServiceAopTest {
+public class NewsServiceImplAopTest {
 
 	@Autowired
 	private NewsMapper newsMapper;
 	@Autowired
-	private BaseRepository<Author, Long> authorRepository;
+	private AuthorRepository authorRepository;
 	@Autowired
-	private BaseRepository<News, Long> newsRepository;
+	private NewsRepository newsRepository;
 	@Autowired
 	private NewsService newsService;
 
@@ -101,7 +102,7 @@ public class NewsServiceAopTest {
 				request.content(),
 				date,
 				date,
-				request.authorId()
+				Util.createTestAuthor(request.authorId())
 			);
 			when(newsRepository.create(any())).thenReturn(savedNews);
 			when(newsMapper.modelToDto(savedNews)).thenReturn(Util.newsToDTO(savedNews));
@@ -223,7 +224,7 @@ public class NewsServiceAopTest {
 				"Some updated content",
 				LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 				LocalDateTime.now(),
-				2L
+				Util.createTestAuthor(2L)
 			);
 			when(authorRepository.existById(request.authorId())).thenReturn(true);
 			when(newsRepository.existById(request.id())).thenReturn(true);

@@ -1,10 +1,11 @@
 package com.mjc.school.service;
 
-import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.impl.AuthorInMemoryRepository;
-import com.mjc.school.repository.impl.NewsInMemoryRepository;
-import com.mjc.school.repository.model.Author;
-import com.mjc.school.repository.model.News;
+import com.mjc.school.repository.AuthorRepository;
+import com.mjc.school.repository.NewsRepository;
+import com.mjc.school.repository.TagRepository;
+import com.mjc.school.service.mapper.AuthorMapper;
+import com.mjc.school.service.mapper.NewsMapper;
+import com.mjc.school.service.mapper.TagMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +21,20 @@ public class ServiceAopTestConfiguration {
 
 	@Bean
 	@Primary
-	public BaseRepository<Author, Long> authorRepository() {
-		return mock(AuthorInMemoryRepository.class);
+	public AuthorRepository authorRepository() {
+		return mock(AuthorRepository.class);
 	}
 
 	@Bean
 	@Primary
-	public BaseRepository<News, Long> newsRepository() {
-		return mock(NewsInMemoryRepository.class);
+	public NewsRepository newsRepository() {
+		return mock(NewsRepository.class);
+	}
+
+	@Bean
+	@Primary
+	public TagRepository tagRepository() {
+		return mock(TagRepository.class);
 	}
 
 	@Bean
@@ -40,5 +47,11 @@ public class ServiceAopTestConfiguration {
 	@Primary
 	public NewsMapper newsMapper() {
 		return mock(NewsMapper.class);
+	}
+
+	@Bean
+	@Primary
+	public TagMapper tagMapper() {
+		return mock(TagMapper.class);
 	}
 }

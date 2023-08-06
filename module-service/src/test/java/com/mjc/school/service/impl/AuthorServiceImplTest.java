@@ -1,8 +1,8 @@
 package com.mjc.school.service.impl;
 
-import com.mjc.school.repository.BaseRepository;
+import com.mjc.school.repository.AuthorRepository;
 import com.mjc.school.repository.model.Author;
-import com.mjc.school.service.AuthorMapper;
+import com.mjc.school.service.mapper.AuthorMapper;
 import com.mjc.school.service.dto.AuthorRequestDto;
 import com.mjc.school.service.dto.AuthorResponseDto;
 import com.mjc.school.service.exception.EntityNotFoundException;
@@ -31,14 +31,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AuthorServiceTest {
+class AuthorServiceImplTest {
 
 	@Mock
-	private BaseRepository<Author, Long> authorRepository;
+	private AuthorRepository authorRepository;
 	@Mock
 	private AuthorMapper authorMapper;
 	@InjectMocks
-	private AuthorService authorService;
+	private AuthorServiceImpl authorService;
 
 	@Nested
 	class TestCreate {

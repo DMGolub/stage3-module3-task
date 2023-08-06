@@ -1,21 +1,43 @@
 package com.mjc.school.repository.model;
 
-import com.mjc.school.repository.action.OnDelete;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static com.mjc.school.repository.action.Operation.SET_NULL;
-
+@Entity
+@Table(name="Author")
 public class Author implements BaseEntity<Long> {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "author_id")
 	private Long id;
+	@Column(name = "author_name", nullable = false)
 	private String name;
+	@CreatedDate
+	@Column(name = "author_create_date", nullable = false)
 	private LocalDateTime createDate;
+	@LastModifiedDate
+	@Column(name = "author_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
-	@OnDelete(operation = SET_NULL, fieldName = "authorId")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "author", cascade = CascadeType.REMOVE)
 	private List<News> news;
+
+	public Author() {
+		// Empty. Used by JPA
+	}
 
 	public Author(
 		final Long id,

@@ -1,33 +1,21 @@
 package com.mjc.school.repository.config;
 
-import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.IdSequence;
-import com.mjc.school.repository.impl.AuthorInMemoryRepository;
-import com.mjc.school.repository.impl.InMemoryIdSequence;
-import com.mjc.school.repository.impl.NewsInMemoryRepository;
-import com.mjc.school.repository.model.Author;
-import com.mjc.school.repository.model.News;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
-import java.util.stream.Stream;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 @Configuration
+@EnableTransactionManagement
 public class RepositoryConfig {
+
+	private static final String[] ENTITY_PACKAGES = {"com.mjc.school.repository.model"};
 
 	private static final String AUTHORS_FILE_NAME = "authors";
 	private static final String CONTENT_FILE_NAME = "content";
@@ -37,14 +25,48 @@ public class RepositoryConfig {
 	private final Random random = new Random();
 
 	@Bean
-	@Scope(SCOPE_PROTOTYPE)
-	public IdSequence<Long> longIdSequence() {
-		return new InMemoryIdSequence<>(1L, prev -> prev + 1);
+	public DriverManagerDataSource dataSource() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setUsername("sa");
+		dataSource.setPassword("password");
+		dataSource.setDriverClassName("org.h2.Driver");
+		dataSource.setUrl("jdbc:h2:mem:newsdb;DB_CLOSE_DELAY=-1");
+		return dataSource;
 	}
 
 	@Bean
-	public BaseRepository<Author, Long> authorRepository(final IdSequence<Long> idSequence) {
-		final BaseRepository<Author, Long> authorRepository = new AuthorInMemoryRepository(idSequence);
+	public JpaTransactionManager jpaTransactionManager() {
+		JpaTransactionManager transactionManager = new JpaTransactionManager();
+		transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
+		return transactionManager;
+	}
+
+	@Bean
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+		LocalContainerEntityManagerFactoryBean entityManagerFactory =
+			new LocalContainerEntityManagerFactoryBean();
+
+		entityManagerFactory.setDataSource(dataSource());
+		entityManagerFactory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+		entityManagerFactory.setPackagesToScan(ENTITY_PACKAGES);
+		entityManagerFactory.setJpaProperties(addProperties());
+
+		return entityManagerFactory;
+	}
+
+	private Properties addProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("hibernate.connection.pool_size", "3");
+		properties.setProperty("hibernate.show_sql", "true");
+		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+		properties.setProperty("hibernate.hbm2ddl.auto", "update");
+		return properties;
+	}
+
+	/*
+	@Bean
+	public BaseRepository<Author, Long> authorRepository() {
+		final BaseRepository<Author, Long> authorRepository = new AuthorRepository();
 		initializeAuthorsRepository(authorRepository);
 		return authorRepository;
 	}
@@ -55,7 +77,7 @@ public class RepositoryConfig {
 		final BaseRepository<Author, Long> authorRepository
 	) {
 		final BaseRepository<News, Long> newsRepository = new NewsInMemoryRepository(idSequence);
-		initializeNewsRepository(newsRepository, authorRepository);
+		//initializeNewsRepository(newsRepository, authorRepository);
 		return newsRepository;
 	}
 
@@ -87,7 +109,7 @@ public class RepositoryConfig {
 						getRandomElement(contents),
 						date,
 						date,
-						getRandomElement(authors).getId());
+						getRandomElement(authors));
 				})
 			.limit(NEWS_COUNT)
 			.forEach(newsRepository::create);
@@ -131,4 +153,5 @@ public class RepositoryConfig {
 		LocalTime time = LocalTime.of(hour, minute, second);
 		return LocalDateTime.of(day, time);
 	}
+	*/
 }
