@@ -23,7 +23,7 @@ public class RepositoryConfig {
 	private static final int AUTHOR_COUNT = 20;
 	private static final int NEWS_COUNT = 20;
 	private final Random random = new Random();
-
+	/*
 	@Bean
 	public DriverManagerDataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -62,6 +62,7 @@ public class RepositoryConfig {
 		properties.setProperty("hibernate.hbm2ddl.auto", "update");
 		return properties;
 	}
+	*/
 
 	/*
 	@Bean
