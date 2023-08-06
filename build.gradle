@@ -29,7 +29,6 @@ subprojects {
 
 		implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springDataJpaVersion"
 		implementation "javax.xml.bind:jaxb-api:$jaxbApiVersion"
-		runtimeOnly "com.h2database:h2:$h2Version"
 	}
 
 	test {

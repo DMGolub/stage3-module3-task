@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +25,7 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 	@Override
 	public Optional<Author> readById(final Long id) {
 		if (id != null) {
-			Author author = entityManager.find(Author.class, id);
-			return Optional.ofNullable(author);
+			return Optional.ofNullable(entityManager.find(Author.class, id));
 		}
 		return Optional.empty();
 	}
@@ -37,7 +35,7 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 		if (newsId != null) {
 			final String query = "SELECT a FROM Author AS a WHERE a.id = " +
 				"(SELECT n.author.id FROM News AS n WHERE n.id = :newsId)";
-			Author author = entityManager.createQuery(query, Author.class)
+			final Author author = entityManager.createQuery(query, Author.class)
 				.setParameter("newsId", newsId)
 				.getSingleResult();
 			return Optional.ofNullable(author);
@@ -46,7 +44,6 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 	}
 
 	@Override
-	@Transactional
 	public Author create(final Author author) {
 		if (author != null) {
 			entityManager.persist(author);
@@ -56,7 +53,6 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 	}
 
 	@Override
-	@Transactional
 	public Author update(final Author author) {
 		if (author != null && existById(author.getId())) {
 			entityManager.merge(author);
@@ -66,7 +62,6 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 	}
 
 	@Override
-	@Transactional
 	public boolean deleteById(final Long id) {
 		final Optional<Author> author = readById(id);
 		if (author.isPresent()) {

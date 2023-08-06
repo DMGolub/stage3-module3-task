@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,6 @@ public class TagRepositoryImpl implements TagRepository {
 	}
 
 	@Override
-	@Transactional
 	public Tag create(final Tag tag) {
 		if (tag != null) {
 			entityManager.persist(tag);
@@ -54,7 +52,6 @@ public class TagRepositoryImpl implements TagRepository {
 	}
 
 	@Override
-	@Transactional
 	public Tag update(final Tag tag) {
 		if (tag != null && existById(tag.getId())) {
 			entityManager.merge(tag);
@@ -64,7 +61,6 @@ public class TagRepositoryImpl implements TagRepository {
 	}
 
 	@Override
-	@Transactional
 	public boolean deleteById(final Long id) {
 		final Optional<Tag> tag = readById(id);
 		if (tag.isPresent()) {

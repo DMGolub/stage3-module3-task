@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +36,6 @@ public class NewsRepositoryImpl implements NewsRepository {
 	}
 
 	@Override
-	@Transactional
 	public News create(final News news) {
 		if (news != null) {
 			entityManager.persist(news);
@@ -47,7 +45,6 @@ public class NewsRepositoryImpl implements NewsRepository {
 	}
 
 	@Override
-	@Transactional
 	public News update(final News news) {
 		if (news != null && existById(news.getId())) {
 			entityManager.merge(news);
@@ -57,7 +54,6 @@ public class NewsRepositoryImpl implements NewsRepository {
 	}
 
 	@Override
-	@Transactional
 	public boolean deleteById(final Long id) {
 		final Optional<News> news = readById(id);
 		if (news.isPresent()) {
