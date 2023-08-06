@@ -1,16 +1,48 @@
 package com.mjc.school.repository.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name="News")
 public class News implements BaseEntity<Long> {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "news_id")
 	private Long id;
+	@Column(name = "news_title", nullable = false)
 	private String title;
+	@Column(name = "news_content", nullable = false)
 	private String content;
+	@Column(name = "news_create_date", nullable = false)
 	private LocalDateTime createDate;
+	@Column(name = "news_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
-	private Long authorId;
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "author_id")
+	private Author author;
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "News_tags",
+		joinColumns = @JoinColumn(name = "news_id"),
+		inverseJoinColumns = @JoinColumn(name = "tag_id"))
+	private List<Tag> tags;
+
+	public News() {
+		// Empty. Used by JPA
+	}
 
 	@Override
 	public Long getId() {
@@ -28,14 +60,14 @@ public class News implements BaseEntity<Long> {
 		final String content,
 		final LocalDateTime createDate,
 		final LocalDateTime lastUpdateDate,
-		final Long authorId
+		final Author author
 	) {
 		this.id = id;
 		this.title = title;
 		this.content = content;
 		this.createDate = createDate;
 		this.lastUpdateDate = lastUpdateDate;
-		this.authorId = authorId;
+		this.author = author;
 	}
 
 	public String getTitle() {
@@ -70,12 +102,12 @@ public class News implements BaseEntity<Long> {
 		this.lastUpdateDate = lastUpdateDate;
 	}
 
-	public Long getAuthorId() {
-		return authorId;
+	public Author getAuthor() {
+		return author;
 	}
 
-	public void setAuthorId(final Long authorId) {
-		this.authorId = authorId;
+	public void setAuthor(final Author author) {
+		this.author = author;
 	}
 
 	@Override
@@ -85,7 +117,7 @@ public class News implements BaseEntity<Long> {
 			", content='" + content + '\'' +
 			", createDate=" + createDate +
 			", lastUpdateDate=" + lastUpdateDate +
-			", authorId=" + authorId +
+			", author=" + author.toString() +
 			'}';
 	}
 
@@ -103,7 +135,7 @@ public class News implements BaseEntity<Long> {
 			&& Objects.equals(content, news.content)
 			&& Objects.equals(createDate, news.createDate)
 			&& Objects.equals(lastUpdateDate, news.lastUpdateDate)
-			&& Objects.equals(authorId, news.authorId);
+			&& Objects.equals(author, news.author);
 	}
 
 	@Override

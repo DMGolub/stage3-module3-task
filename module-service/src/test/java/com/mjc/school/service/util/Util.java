@@ -2,10 +2,13 @@ package com.mjc.school.service.util;
 
 import com.mjc.school.repository.model.Author;
 import com.mjc.school.repository.model.News;
+import com.mjc.school.repository.model.Tag;
 import com.mjc.school.service.dto.AuthorRequestDto;
 import com.mjc.school.service.dto.AuthorResponseDto;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
+import com.mjc.school.service.dto.TagRequestDto;
+import com.mjc.school.service.dto.TagResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,7 +65,7 @@ public final class Util {
 			"Content",
 			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
-			1L
+			Util.createTestAuthor(1L)
 		);
 	}
 
@@ -77,7 +80,7 @@ public final class Util {
 			news.getContent(),
 			news.getCreateDate(),
 			news.getLastUpdateDate(),
-			news.getAuthorId()
+			news.getAuthor().getId()
 		);
 	}
 
@@ -88,13 +91,35 @@ public final class Util {
 			newsRequestDto.content(),
 			null,
 			null,
-			newsRequestDto.authorId()
+			null		// FIXME - this was authorId
 		);
 	}
 
 	public static List<NewsResponseDto> newsListToNewsDTOList(final List<News> news) {
 		return news.stream()
 			.map(Util::newsToDTO)
+			.collect(Collectors.toList());
+	}
+
+	public static TagRequestDto createTestTagRequest(final Long tagId) {
+		return new TagRequestDto(tagId, "Tag Name");
+	}
+
+	public static Tag createTestTag(final long id) {
+		return new Tag(id, "Tag Name");
+	}
+
+	public static TagResponseDto tagToDTO(final Tag tag) {
+		return new TagResponseDto(tag.getId(), tag.getName());
+	}
+
+	public static Tag dtoToTag(final TagRequestDto tagRequestDto) {
+		return new Tag(tagRequestDto.id(), tagRequestDto.name());
+	}
+
+	public static List<TagResponseDto> tagListToTagDTOList(final List<Tag> Tags) {
+		return Tags.stream()
+			.map(Util::tagToDTO)
 			.collect(Collectors.toList());
 	}
 }

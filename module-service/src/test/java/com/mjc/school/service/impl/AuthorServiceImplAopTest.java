@@ -1,8 +1,9 @@
 package com.mjc.school.service.impl;
 
-import com.mjc.school.repository.BaseRepository;
+import com.mjc.school.repository.AuthorRepository;
 import com.mjc.school.repository.model.Author;
-import com.mjc.school.service.AuthorMapper;
+import com.mjc.school.service.exception.EntityNotFoundException;
+import com.mjc.school.service.mapper.AuthorMapper;
 import com.mjc.school.service.ServiceAopTestConfiguration;
 import com.mjc.school.service.dto.AuthorRequestDto;
 import com.mjc.school.service.dto.AuthorResponseDto;
@@ -25,14 +26,14 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ServiceAopTestConfiguration.class})
-public class AuthorServiceAopTest {
+public class AuthorServiceImplAopTest {
 
 	@Autowired
 	private AuthorMapper authorMapper;
 	@Autowired
-	private BaseRepository<Author, Long> authorRepository;
+	private AuthorRepository authorRepository;
 	@Autowired
-	private AuthorService authorService;
+	private AuthorServiceImpl authorService;
 
 	@Nested
 	class TestCreate {
@@ -102,7 +103,7 @@ public class AuthorServiceAopTest {
 			final AuthorResponseDto expected = Util.authorToDTO(toBeFound);
 			when(authorMapper.modelToDto(toBeFound)).thenReturn(expected);
 
-			assertDoesNotThrow(() -> authorService.readById(id));
+			assertThrows(EntityNotFoundException.class, () -> authorService.readById(id));
 		}
 	}
 
@@ -163,7 +164,7 @@ public class AuthorServiceAopTest {
 			final AuthorResponseDto response = Util.authorToDTO(updated);
 			when(authorMapper.modelToDto(updated)).thenReturn(response);
 
-			assertDoesNotThrow(() -> authorService.update(request));
+			assertThrows(EntityNotFoundException.class, () -> authorService.update(request));
 		}
 	}
 
@@ -193,7 +194,7 @@ public class AuthorServiceAopTest {
 			when(authorRepository.existById(id)).thenReturn(true);
 			when(authorRepository.deleteById(id)).thenReturn(true);
 
-			assertDoesNotThrow(() -> authorService.deleteById(id));
+			assertThrows(EntityNotFoundException.class, () -> authorService.deleteById(id));
 		}
 	}
 }

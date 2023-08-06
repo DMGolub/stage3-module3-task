@@ -1,36 +1,33 @@
 package com.mjc.school.repository.impl;
 
-import com.mjc.school.repository.IdSequence;
-import com.mjc.school.repository.model.Author;
-import org.junit.jupiter.api.BeforeEach;
+import com.mjc.school.repository.RepositoryTestConfig;
+import com.mjc.school.repository.TagRepository;
+import com.mjc.school.repository.model.Tag;
+import com.mjc.school.repository.util.Util;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(MockitoExtension.class)
-class AuthorInMemoryRepositoryTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {RepositoryTestConfig.class})
+class TagRepositoryImplTest {
 
-	private AuthorInMemoryRepository repository;
-
-	@BeforeEach
-	void init() {
-		final IdSequence<Long> longIdSequence = new InMemoryIdSequence<>(1L, prev -> prev + 1);
-		repository = new AuthorInMemoryRepository(longIdSequence);
-	}
+	@Autowired
+	private TagRepository repository;
 
 	@Nested
 	class TestReadAll {
@@ -42,25 +39,28 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void readAll_shouldReturnTwoEntities_whenThereAreTwoEntitiesInTheStorage() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
-			assertEquals(storage, repository.readAll());
+			final List<Tag> result = repository.readAll();
+
+			assertEquals(2, result.size());
+			assertEquals(1L, result.get(0).getId());
+			assertEquals(2L, result.get(1).getId());
 		}
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 	class TestReadById {
 
 		@Test
 		void readById_shouldReturnEmptyOptional_whenThereIsNoEntityWithGivenId() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
@@ -69,10 +69,14 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void readById_shouldReturnEntity_whenEntityWithGivenIdExists() {
-			Author expected = createTestAuthor(2L);
-			repository.create(expected);
+			Tag tag = Util.createTestTag(null);
+			repository.create(tag);
 
-			assertEquals(Optional.of(expected), repository.readById(expected.getId()));
+			final Optional<Tag> result = repository.readById(1L);
+
+			assertTrue(result.isPresent());
+			assertEquals(1L, result.get().getId());
+			assertEquals(tag.getName(), result.get().getName());
 		}
 	}
 
@@ -81,25 +85,30 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void create_shouldSaveEntityAndReturnEntityWithId1_whenStorageIsEmpty() {
-			Author author = createTestAuthor(null);
-			Author expected = createTestAuthor(1L);
+			final Tag tag = Util.createTestTag(null);
 
-			assertEquals(expected, repository.create(author));
+			final Tag result = repository.create(tag);
+
+			assertNotNull(result);
+			assertEquals(1L, result.getId());
+			assertEquals(tag.getName(), result.getName());
 			assertEquals(1, repository.readAll().size());
 		}
 
 		@Test
 		void create_shouldSaveEntityAndReturnEntityWithId3_whenStorageContainsTwoEntities() {
-			final List<Author> storage = List.of(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = List.of(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
-			Author author = createTestAuthor(null);
-			Author expected = createTestAuthor(3L);
+			final Tag tag = Util.createTestTag(null);
+			final Tag result = repository.create(tag);
 
-			assertEquals(expected, repository.create(author));
+			assertNotNull(result);
+			assertEquals(3L, result.getId());
+			assertEquals(tag.getName(), result.getName());
 			assertEquals(3, repository.readAll().size());
 		}
 	}
@@ -108,44 +117,45 @@ class AuthorInMemoryRepositoryTest {
 	class TestUpdate {
 
 		@Test
-		void update_shouldThrowNoSuchElementException_whenThereIsNoEntityWithGivenId() {
-			final List<Author> storage = List.of(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+		void update_shouldReturnNull_whenThereIsNoEntityWithGivenId() {
+			final List<Tag> storage = List.of(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
-			Author updated = createTestAuthor(99L);
+			final Tag updated = Util.createTestTag(99L);
+			final Tag result = repository.update(updated);
 
-			assertThrows(NoSuchElementException.class, () -> repository.update(updated));
+			assertNull(result);
 		}
 
 		@Test
 		void update_shouldReturnUpdatedEntity_whenEntityIsValid() {
-			final List<Author> storage = List.of(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = List.of(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
-			final Author updated = createTestAuthor(2L);
+			final Tag updated = Util.createTestTag(2L);
 			updated.setName("Updated name");
-			List<Author> expected = Arrays.asList(createTestAuthor(1L), updated);
+			final Tag result = repository.update(updated);
 
-			assertEquals(updated, repository.update(updated));
-			assertEquals(expected, repository.readAll());
+			assertNotNull(result);
+			assertEquals(2L, result.getId());
+			assertEquals(updated.getName(), result.getName());
 		}
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 	class TestDeleteById {
 
 		@Test
 		void delete_shouldReturnFalse_whenIdIsNull() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
@@ -161,9 +171,9 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void delete_shouldReturnFalse_whenThereIsNoEntityWithGivenId() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
@@ -173,19 +183,23 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void delete_shouldReturnTrue_whenEntityWithGivenIdDeleted() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
 			assertTrue(repository.deleteById(2L));
-			assertEquals(1, repository.readAll().size());
+			final List<Tag> result = repository.readAll();
+			assertEquals(2, result.size());
+			assertEquals(1L, result.get(0).getId());
+			assertEquals(3L, result.get(1).getId());
 		}
 
 		@Test
 		void delete_shouldDeleteEntity_whenItIsSingleEntityInTheStorage() {
-			repository.create(createTestAuthor(null));
+			repository.create(Util.createTestTag(null));
 
 			assertTrue(repository.deleteById(1L));
 			assertTrue(repository.readAll().isEmpty());
@@ -193,7 +207,6 @@ class AuthorInMemoryRepositoryTest {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 	class TestExistById {
 
 		@Test
@@ -209,9 +222,9 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void existById_shouldReturnFalse_whenThereIsNoEntityWithGivenId() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
@@ -220,22 +233,13 @@ class AuthorInMemoryRepositoryTest {
 
 		@Test
 		void existById_shouldReturnTrue_whenEntityWithGivenIdExists() {
-			final List<Author> storage = Arrays.asList(
-				createTestAuthor(1L),
-				createTestAuthor(2L)
+			final List<Tag> storage = Arrays.asList(
+				Util.createTestTag(null),
+				Util.createTestTag(null)
 			);
 			storage.forEach(repository::create);
 
 			assertTrue(repository.existById(2L));
 		}
-	}
-
-	private Author createTestAuthor(Long authorId) {
-		return new Author(
-			authorId,
-			"Author Name",
-			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
-			LocalDateTime.of(2023, 7, 17, 16, 30, 0)
-		);
 	}
 }

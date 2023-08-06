@@ -1,11 +1,12 @@
 package com.mjc.school.service.impl;
 
-import com.mjc.school.repository.BaseRepository;
-import com.mjc.school.repository.impl.AuthorInMemoryRepository;
-import com.mjc.school.repository.impl.NewsInMemoryRepository;
-import com.mjc.school.repository.model.Author;
+import com.mjc.school.repository.AuthorRepository;
+import com.mjc.school.repository.NewsRepository;
+import com.mjc.school.repository.impl.AuthorRepositoryImpl;
+import com.mjc.school.repository.impl.NewsRepositoryImpl;
 import com.mjc.school.repository.model.News;
-import com.mjc.school.service.NewsMapper;
+import com.mjc.school.service.NewsService;
+import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
 import com.mjc.school.service.exception.EntityNotFoundException;
@@ -34,12 +35,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class NewsServiceTest {
+class NewsServiceImplTest {
 
-	private final BaseRepository<Author, Long> authorRepository = mock(AuthorInMemoryRepository.class);
-	private final BaseRepository<News, Long> newsRepository = mock(NewsInMemoryRepository.class);
+	private final AuthorRepository authorRepository = mock(AuthorRepositoryImpl.class);
+	private final NewsRepository newsRepository = mock(NewsRepositoryImpl.class);
 	private final NewsMapper newsMapper = mock(NewsMapper.class);
-	private final NewsService newsService = new NewsService(authorRepository, newsRepository, newsMapper);
+	private final NewsService newsService = new NewsServiceImpl(authorRepository, newsRepository, newsMapper);
 
 	@Nested
 	class TestCreate {
@@ -94,7 +95,7 @@ class NewsServiceTest {
 				request.content(),
 				date,
 				date,
-				request.authorId()
+				Util.createTestAuthor(request.authorId())
 			);
 			when(newsRepository.create(any())).thenReturn(savedNews);
 			final NewsResponseDto response = Util.newsToDTO(savedNews);
@@ -240,7 +241,7 @@ class NewsServiceTest {
 				"Some updated content",
 				LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 				LocalDateTime.now(),
-				2L
+				Util.createTestAuthor(2L)
 			);
 			when(authorRepository.existById(request.authorId())).thenReturn(true);
 			when(newsRepository.existById(request.id())).thenReturn(true);
