@@ -1,6 +1,6 @@
 package com.mjc.school.controller.impl;
 
-import com.mjc.school.controller.BaseController;
+import com.mjc.school.controller.NewsController;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 
 @Controller
-public class NewsController implements BaseController<NewsRequestDto, NewsResponseDto, Long> {
+public class NewsControllerImpl implements NewsController {
 
 	private final NewsService newsService;
 
-	public NewsController(final NewsService newsService) {
+	public NewsControllerImpl(final NewsService newsService) {
 		this.newsService = newsService;
 	}
 
@@ -30,6 +30,18 @@ public class NewsController implements BaseController<NewsRequestDto, NewsRespon
 	@CommandHandler(operation = 2)
 	public NewsResponseDto readById(@CommandParam(name = "id") final Long id) {
 		return newsService.readById(id);
+	}
+
+	@Override
+	@CommandHandler(operation = 3)
+	public List<NewsResponseDto> readNewsByParams(
+		@CommandParam(name = "tagName") final String tagName,
+		@CommandParam(name = "tagId") final Long tagId,
+		@CommandParam(name = "authorName") final String authorName,
+		@CommandParam(name = "title") final String title,
+		@CommandParam(name = "content") final String content
+	) {
+		return newsService.readNewsByParams(tagName, tagId, authorName, title, content);
 	}
 
 	@Override

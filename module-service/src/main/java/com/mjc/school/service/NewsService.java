@@ -7,5 +7,11 @@ import java.util.List;
 
 public interface NewsService extends BaseService<NewsRequestDto, NewsResponseDto, Long> {
 
-	List<NewsResponseDto> readNewsByParams(Object[] params);
+	List<NewsResponseDto> readNewsByParams(
+		String tagName,
+		Long tagId,
+		String authorName,
+		String title,
+		String content
+	);
 }

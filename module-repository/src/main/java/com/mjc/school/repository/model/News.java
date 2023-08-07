@@ -1,5 +1,8 @@
 package com.mjc.school.repository.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -27,8 +30,10 @@ public class News implements BaseEntity<Long> {
 	private String title;
 	@Column(name = "news_content", nullable = false)
 	private String content;
+	@CreationTimestamp
 	@Column(name = "news_create_date", nullable = false)
 	private LocalDateTime createDate;
+	@UpdateTimestamp
 	@Column(name = "news_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
 	@ManyToOne(fetch = FetchType.EAGER)
@@ -60,7 +65,8 @@ public class News implements BaseEntity<Long> {
 		final String content,
 		final LocalDateTime createDate,
 		final LocalDateTime lastUpdateDate,
-		final Author author
+		final Author author,
+		final List<Tag> tags
 	) {
 		this.id = id;
 		this.title = title;
@@ -68,6 +74,7 @@ public class News implements BaseEntity<Long> {
 		this.createDate = createDate;
 		this.lastUpdateDate = lastUpdateDate;
 		this.author = author;
+		this.tags = tags;
 	}
 
 	public String getTitle() {
@@ -110,6 +117,14 @@ public class News implements BaseEntity<Long> {
 		this.author = author;
 	}
 
+	public List<Tag> getTags() {
+		return tags;
+	}
+
+	public void setTags(final List<Tag> tags) {
+		this.tags = tags;
+	}
+
 	@Override
 	public String toString() {
 		return "News{id=" + id +
@@ -118,6 +133,7 @@ public class News implements BaseEntity<Long> {
 			", createDate=" + createDate +
 			", lastUpdateDate=" + lastUpdateDate +
 			", author=" + author.toString() +
+			", tags=" + tags.toString() +
 			'}';
 	}
 

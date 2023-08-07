@@ -12,12 +12,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class AuthorControllerTest {
+class AuthorControllerImplTest {
 
 	@Mock
 	private AuthorServiceImpl authorService;
 	@InjectMocks
-	private AuthorController authorController;
+	private AuthorControllerImpl authorController;
 
 	@Test
 	void create_shouldInvokeServiceSaveMethod_whenInvoked() {

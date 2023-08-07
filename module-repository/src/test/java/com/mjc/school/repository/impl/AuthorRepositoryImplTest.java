@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
@@ -30,6 +31,8 @@ class AuthorRepositoryImplTest {
 	private AuthorRepository repository;
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestReadAll {
 
 		@Test
@@ -54,6 +57,8 @@ class AuthorRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestReadById {
 
 		@Test
@@ -81,6 +86,8 @@ class AuthorRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestCreate {
 
 		@Test
@@ -114,6 +121,8 @@ class AuthorRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestUpdate {
 
 		@Test
@@ -149,6 +158,8 @@ class AuthorRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestDeleteById {
 
 		@Test
@@ -207,6 +218,8 @@ class AuthorRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestExistById {
 
 		@Test

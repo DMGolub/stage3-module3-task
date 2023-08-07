@@ -103,7 +103,7 @@ public class AuthorServiceImplAopTest {
 			final AuthorResponseDto expected = Util.authorToDTO(toBeFound);
 			when(authorMapper.modelToDto(toBeFound)).thenReturn(expected);
 
-			assertThrows(EntityNotFoundException.class, () -> authorService.readById(id));
+			assertDoesNotThrow(() -> authorService.readById(id));
 		}
 	}
 
@@ -194,7 +194,7 @@ public class AuthorServiceImplAopTest {
 			when(authorRepository.existById(id)).thenReturn(true);
 			when(authorRepository.deleteById(id)).thenReturn(true);
 
-			assertThrows(EntityNotFoundException.class, () -> authorService.deleteById(id));
+			assertDoesNotThrow(() -> authorService.deleteById(id));
 		}
 	}
 }

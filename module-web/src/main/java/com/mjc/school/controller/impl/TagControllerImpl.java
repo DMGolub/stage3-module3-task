@@ -1,6 +1,6 @@
 package com.mjc.school.controller.impl;
 
-import com.mjc.school.controller.BaseController;
+import com.mjc.school.controller.TagController;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 
 @Controller
-public class TagController implements BaseController<TagRequestDto, TagResponseDto, Long> {
+public class TagControllerImpl implements TagController {
 
 	private final TagService tagService;
 
-	public TagController(final TagService tagService) {
+	public TagControllerImpl(final TagService tagService) {
 		this.tagService = tagService;
 	}
 
@@ -30,6 +30,12 @@ public class TagController implements BaseController<TagRequestDto, TagResponseD
 	@CommandHandler(operation = 14)
 	public TagResponseDto readById(@CommandParam(name = "id") final Long id) {
 		return tagService.readById(id);
+	}
+
+	@Override
+	@CommandHandler(operation = 15)
+	public List<TagResponseDto> readTagsByNewsId(@CommandParam(name = "newsId") final Long newsId) {
+		return tagService.readTagsByNewsId(newsId);
 	}
 
 	@Override

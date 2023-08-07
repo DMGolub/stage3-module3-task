@@ -26,7 +26,8 @@ public class Conversation {
 		while (!isFinished) {
 			try {
 				helper.printMainMenu();
-				int key = (int) helper.getLongWithLowerBound(ENTER_COMMAND_MESSAGE, 0L, keyboard);
+				System.out.println(ENTER_COMMAND_MESSAGE);
+				int key = (int) helper.getLongWithLowerBound(0L, keyboard);
 				if (Operations.EXIT.getOperationNumber() == key) {
 					isFinished = true;
 					continue;

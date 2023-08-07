@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ class NewsRepositoryImplTest {
 	private NewsRepository repository;
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestReadAll {
 
 		@Test
@@ -55,6 +58,8 @@ class NewsRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestReadById {
 
 		@Test
@@ -83,6 +88,8 @@ class NewsRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestCreate {
 
 		@Test
@@ -117,45 +124,49 @@ class NewsRepositoryImplTest {
 		}
 	}
 
-		@Nested
-		class TestUpdate {
+	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
+	class TestUpdate {
 
-			@Test
-			void update_shouldReturnNull_whenThereIsNoEntityWithGivenId() {
-				final List<News> storage = List.of(
-					Util.createTestNews(null),
-					Util.createTestNews(null)
-				);
-				storage.forEach(repository::create);
+		@Test
+		void update_shouldReturnNull_whenThereIsNoEntityWithGivenId() {
+			final List<News> storage = List.of(
+				Util.createTestNews(null),
+				Util.createTestNews(null)
+			);
+			storage.forEach(repository::create);
 
-				final News updated = Util.createTestNews(99L);
-				final News result = repository.update(updated);
+			final News updated = Util.createTestNews(99L);
+			final News result = repository.update(updated);
 
-				assertNull(result);
-			}
-
-			@Test
-			void update_shouldReturnUpdatedEntity_whenEntityIsValid() {
-				final List<News> storage = List.of(
-					Util.createTestNews(null),
-					Util.createTestNews(null)
-				);
-				storage.forEach(repository::create);
-
-				final News updated = Util.createTestNews(2L);
-				updated.setTitle("Updated title");
-				updated.setContent("Updated content");
-
-				final News result = repository.update(updated);
-
-				assertNotNull(result);
-				assertEquals(updated.getId(), result.getId());
-				assertEquals(updated.getTitle(), result.getTitle());
-				assertEquals(updated.getContent(), result.getContent());
-			}
+			assertNull(result);
 		}
 
+		@Test
+		void update_shouldReturnUpdatedEntity_whenEntityIsValid() {
+			final List<News> storage = List.of(
+				Util.createTestNews(null),
+				Util.createTestNews(null)
+			);
+			storage.forEach(repository::create);
+
+			final News updated = Util.createTestNews(2L);
+			updated.setTitle("Updated title");
+			updated.setContent("Updated content");
+
+			final News result = repository.update(updated);
+
+			assertNotNull(result);
+			assertEquals(updated.getId(), result.getId());
+			assertEquals(updated.getTitle(), result.getTitle());
+			assertEquals(updated.getContent(), result.getContent());
+		}
+	}
+
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestDeleteById {
 
 		@Test
@@ -212,6 +223,8 @@ class NewsRepositoryImplTest {
 	}
 
 	@Nested
+	@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+		scripts = {"classpath:truncate_db.sql"})
 	class TestExistById {
 
 		@Test

@@ -1,8 +1,8 @@
 package com.mjc.school.service.impl;
 
+import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.Tag;
-import com.mjc.school.service.TagService;
 import com.mjc.school.service.mapper.TagMapper;
 import com.mjc.school.service.dto.TagRequestDto;
 import com.mjc.school.service.dto.TagResponseDto;
@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,11 +35,13 @@ import static org.mockito.Mockito.when;
 class TagServiceImplTest {
 
 	@Mock
+	private NewsRepository newsRepository;
+	@Mock
 	private TagRepository tagRepository;
 	@Mock
 	private TagMapper tagMapper;
 	@InjectMocks
-	private TagService tagService;
+	private TagServiceImpl tagService;
 
 	@Nested
 	class TestCreate {
@@ -178,21 +181,29 @@ class TagServiceImplTest {
 		void deleteById_shouldReturnTrue_whenRepositoryDeletesEntityById() {
 			final long id = 15L;
 			when(tagRepository.existById(id)).thenReturn(true);
+			when(newsRepository.readByParams(null, id, null, null, null))
+				.thenReturn(Collections.emptyList());
 			when(tagRepository.deleteById(id)).thenReturn(true);
 
 			assertTrue(tagService.deleteById(id));
 			verify(tagRepository, times(1)).existById(id);
+			verify(newsRepository, times(1))
+				.readByParams(null, id, null, null, null);
 			verify(tagRepository, times(1)).deleteById(id);
 		}
 
 		@Test
-		void deleteById_shouldReturnFalse_whenRepositoryDoesNotDeletesEntityById() {
+		void deleteById_shouldReturnFalse_whenRepositoryDoesNotDeleteEntityById() {
 			final long id = 99L;
 			when(tagRepository.existById(id)).thenReturn(true);
+			when(newsRepository.readByParams(null, id, null, null, null))
+				.thenReturn(Collections.emptyList());
 			when(tagRepository.deleteById(id)).thenReturn(false);
 
 			assertFalse(tagService.deleteById(id));
 			verify(tagRepository, times(1)).existById(id);
+			verify(newsRepository, times(1))
+				.readByParams(null, id, null, null, null);
 			verify(tagRepository, times(1)).deleteById(id);
 		}
 	}

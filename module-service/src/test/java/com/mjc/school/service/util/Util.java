@@ -65,12 +65,13 @@ public final class Util {
 			"Content",
 			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 			LocalDateTime.of(2023, 7, 17, 16, 30, 0),
-			Util.createTestAuthor(1L)
+			Util.createTestAuthor(1L),
+			null
 		);
 	}
 
 	public static NewsRequestDto createTestNewsRequest(final Long newsId) {
-		return new NewsRequestDto(newsId, "Title", "Content", 1L);
+		return new NewsRequestDto(newsId, "Title", "Content", 1L, null);
 	}
 
 	public static NewsResponseDto newsToDTO(final News news) {
@@ -80,7 +81,8 @@ public final class Util {
 			news.getContent(),
 			news.getCreateDate(),
 			news.getLastUpdateDate(),
-			news.getAuthor().getId()
+			news.getAuthor().getId(),
+			null
 		);
 	}
 
@@ -91,7 +93,8 @@ public final class Util {
 			newsRequestDto.content(),
 			null,
 			null,
-			null		// FIXME - this was authorId
+			createTestAuthor(newsRequestDto.authorId()),
+			null
 		);
 	}
 

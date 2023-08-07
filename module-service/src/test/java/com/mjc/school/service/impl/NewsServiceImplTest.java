@@ -2,8 +2,10 @@ package com.mjc.school.service.impl;
 
 import com.mjc.school.repository.AuthorRepository;
 import com.mjc.school.repository.NewsRepository;
+import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.impl.AuthorRepositoryImpl;
 import com.mjc.school.repository.impl.NewsRepositoryImpl;
+import com.mjc.school.repository.impl.TagRepositoryImpl;
 import com.mjc.school.repository.model.News;
 import com.mjc.school.service.NewsService;
 import com.mjc.school.service.mapper.NewsMapper;
@@ -39,24 +41,29 @@ class NewsServiceImplTest {
 
 	private final AuthorRepository authorRepository = mock(AuthorRepositoryImpl.class);
 	private final NewsRepository newsRepository = mock(NewsRepositoryImpl.class);
+	private final TagRepository tagRepository = mock(TagRepositoryImpl.class);
 	private final NewsMapper newsMapper = mock(NewsMapper.class);
-	private final NewsService newsService = new NewsServiceImpl(authorRepository, newsRepository, newsMapper);
+	private final NewsService newsService =
+		new NewsServiceImpl(authorRepository, newsRepository, tagRepository, newsMapper);
 
 	@Nested
 	class TestCreate {
 
 		@Test
 		void create_shouldThrowEntityNotFoundException_whenAuthorIdViolatesConstraints() {
-			final NewsRequestDto zeroAuthorId = new NewsRequestDto(null,
+			final NewsRequestDto zeroAuthorId = new NewsRequestDto(
+				null,
 				"Some valid title",
 				"Some valid content",
-				0L
+				0L,
+				null
 			);
 			final NewsRequestDto negativeAuthorId = new NewsRequestDto(
 				null,
 				"Some valid title",
 				"Some valid content",
-				-2L
+				-2L,
+				null
 			);
 
 			assertThrows(EntityNotFoundException.class, () -> newsService.create(zeroAuthorId));
@@ -70,23 +77,30 @@ class NewsServiceImplTest {
 				null,
 				"Some valid title",
 				"Some valid content",
-				authorId
+				authorId,
+				null
 			);
 
-			when(authorRepository.existById(authorId)).thenReturn(false);
+			when(authorRepository.readById(authorId)).thenReturn(Optional.empty());
 
 			assertThrows(EntityNotFoundException.class, () -> newsService.create(request));
-			verify(authorRepository, times(1)).existById(authorId);
+			verify(authorRepository, times(1)).readById(authorId);
 			verifyNoInteractions(newsRepository);
 		}
 
 		@Test
 		void create_shouldReturnSavedEntity_whenValidRequestDtoProvided() {
 			final long authorId = 1L;
-			final NewsRequestDto request =
-				new NewsRequestDto(null, "Some valid title", "Some valid content", authorId);
+			final NewsRequestDto request = new NewsRequestDto(
+				null,
+				"Some valid title",
+				"Some valid content",
+				authorId,
+				new ArrayList<>()
+			);
 			final News newsRequest = Util.dtoToNews(request);
-			when(authorRepository.existById(authorId)).thenReturn(true);
+			when(authorRepository.readById(authorId))
+				.thenReturn(Optional.of(Util.createTestAuthor(authorId)));
 			when(newsMapper.dtoToModel(request)).thenReturn(newsRequest);
 			final LocalDateTime date = LocalDateTime.now();
 			final News savedNews = new News(
@@ -95,7 +109,8 @@ class NewsServiceImplTest {
 				request.content(),
 				date,
 				date,
-				Util.createTestAuthor(request.authorId())
+				Util.createTestAuthor(request.authorId()),
+				new ArrayList<>()
 			);
 			when(newsRepository.create(any())).thenReturn(savedNews);
 			final NewsResponseDto response = Util.newsToDTO(savedNews);
@@ -103,7 +118,7 @@ class NewsServiceImplTest {
 
 			final NewsResponseDto result = newsService.create(request);
 
-			verify(authorRepository, times(1)).existById(authorId);
+			verify(authorRepository, times(1)).readById(authorId);
 			verify(newsMapper, times(1)).dtoToModel(request);
 			verify(newsRepository, times(1)).create(any());
 			verify(newsMapper, times(1)).modelToDto(savedNews);
@@ -188,13 +203,15 @@ class NewsServiceImplTest {
 				1L,
 				"Some valid title",
 				"Some valid content",
+				null,
 				null
 			);
 			final NewsRequestDto negativeAuthorId = new NewsRequestDto(
 				1L,
 				"Some valid title",
 				"Some valid content",
-				-2L
+				-2L,
+				null
 			);
 
 			assertThrows(EntityNotFoundException.class, () -> newsService.update(nullAuthorId));
@@ -205,24 +222,23 @@ class NewsServiceImplTest {
 		void update_shouldThrowEntityNotFoundException_whenAuthorNotFound() {
 			final long id = 5;
 			final NewsRequestDto request = Util.createTestNewsRequest(id);
-			when(authorRepository.existById(request.authorId())).thenReturn(false);
+			when(authorRepository.readById(request.authorId())).thenReturn(Optional.empty());
 
 			assertThrows(EntityNotFoundException.class, () -> newsService.update(request));
-			verify(authorRepository, times(1)).existById(request.authorId());
-			verifyNoInteractions(newsRepository);
+			verify(newsRepository, times(1)).readById(request.id());
+			verify(authorRepository, times(0)).readById(request.authorId());
 		}
 
 		@Test
 		void update_shouldThrowEntityNotFoundException_whenEntityWithGivenIdNotFound() {
 			final long id = 99L;
 			final NewsRequestDto request = Util.createTestNewsRequest(id);
-			when(authorRepository.existById(request.authorId())).thenReturn(true);
-			when(newsRepository.existById(request.id())).thenReturn(false);
+			when(newsRepository.readById(request.id())).thenReturn(Optional.empty());
 			when(newsRepository.update(any())).thenThrow(new NoSuchElementException());
 
 			assertThrows(EntityNotFoundException.class, () -> newsService.update(request));
-			verify(authorRepository, times(1)).existById(request.authorId());
-			verify(newsRepository, times(1)).existById(request.id());
+			verify(newsRepository, times(1)).readById(request.id());
+			verify(authorRepository, times(0)).readById(request.authorId());
 			verify(newsRepository, times(0)).update(any());
 		}
 
@@ -233,7 +249,8 @@ class NewsServiceImplTest {
 				id,
 				"Some updated title",
 				"Some updated content",
-				2L
+				2L,
+				new ArrayList<>()
 			);
 			final News updated = new News(
 				id,
@@ -241,10 +258,12 @@ class NewsServiceImplTest {
 				"Some updated content",
 				LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 				LocalDateTime.now(),
-				Util.createTestAuthor(2L)
+				Util.createTestAuthor(2L),
+				new ArrayList<>()
 			);
-			when(authorRepository.existById(request.authorId())).thenReturn(true);
-			when(newsRepository.existById(request.id())).thenReturn(true);
+			when(authorRepository.readById(request.authorId()))
+				.thenReturn(Optional.of(Util.createTestAuthor(request.authorId())));
+			when(newsRepository.readById(request.id())).thenReturn(Optional.of(updated));
 			final News newsRequest = Util.dtoToNews(request);
 			when(newsMapper.dtoToModel(request)).thenReturn(newsRequest);
 			when(newsRepository.update(any())).thenReturn(updated);
@@ -253,8 +272,8 @@ class NewsServiceImplTest {
 
 			final NewsResponseDto result = newsService.update(request);
 
-			verify(authorRepository, times(1)).existById(request.authorId());
-			verify(newsRepository, times(1)).existById(request.id());
+			verify(authorRepository, times(1)).readById(request.authorId());
+			verify(newsRepository, times(1)).readById(request.id());
 			verify(newsRepository, times(1)).update(any());
 			assertEquals(response, result);
 		}

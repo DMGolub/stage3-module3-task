@@ -17,6 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -47,19 +48,32 @@ public class NewsServiceImplAopTest {
 
 		@Test
 		void create_shouldThrowValidationException_whenTitleIsNull() {
-			NewsRequestDto nullTitle = new NewsRequestDto(null, null, "Some valid content", 2L);
+			NewsRequestDto nullTitle = new NewsRequestDto(
+				null,
+				null,
+				"Some valid content",
+				2L,
+				null
+			);
 
 			assertThrows(ValidationException.class, () -> newsService.create(nullTitle));
 		}
 
 		@Test
 		void create_shouldThrowValidationException_whenTitleViolatesLengthConstraints() {
-			NewsRequestDto shortTitle = new NewsRequestDto(null, "T", "Some valid content", 2L);
+			NewsRequestDto shortTitle = new NewsRequestDto(
+				null,
+				"T",
+				"Some valid content",
+				2L,
+				null
+			);
 			NewsRequestDto longTitle = new NewsRequestDto(
 				null,
 				"T".repeat(50),
 				"Some valid content",
-				2L
+				2L,
+				null
 			);
 
 			assertThrows(ValidationException.class, () -> newsService.create(shortTitle));
@@ -68,19 +82,32 @@ public class NewsServiceImplAopTest {
 
 		@Test
 		void create_shouldThrowValidationException_whenContentIsNull() {
-			NewsRequestDto nullContent = new NewsRequestDto(null, "Valid title", null, 2L);
+			NewsRequestDto nullContent = new NewsRequestDto(
+				null,
+				"Valid title",
+				null,
+				2L,
+				null
+			);
 
 			assertThrows(ValidationException.class, () -> newsService.create(nullContent));
 		}
 
 		@Test
 		void create_shouldThrowValidationException_whenContentViolatesLengthConstraints() {
-			NewsRequestDto shortContent = new NewsRequestDto(null, "Some valid title", "C", 2L);
+			NewsRequestDto shortContent = new NewsRequestDto(
+				null,
+				"Some valid title",
+				"C",
+				2L,
+				null
+			);
 			NewsRequestDto longContent = new NewsRequestDto(
 				null,
 				"Some valid title",
 				"C".repeat(300),
-				2L
+				2L,
+				null
 			);
 
 			assertThrows(ValidationException.class, () -> newsService.create(shortContent));
@@ -90,10 +117,16 @@ public class NewsServiceImplAopTest {
 		@Test
 		void create_shouldNotThrowValidationException_whenNewsIsValid() {
 			final long authorId = 1L;
-			final NewsRequestDto request =
-				new NewsRequestDto(null, "Some valid title", "Some valid content", authorId);
+			final NewsRequestDto request = new NewsRequestDto(
+				null,
+				"Some valid title",
+				"Some valid content",
+				authorId,
+				new ArrayList<>()
+			);
 			final News newsRequest = Util.dtoToNews(request);
-			when(authorRepository.existById(authorId)).thenReturn(true);
+			when(authorRepository.readById(authorId))
+				.thenReturn(Optional.of(Util.createTestAuthor(authorId)));
 			when(newsMapper.dtoToModel(request)).thenReturn(newsRequest);
 			final LocalDateTime date = LocalDateTime.now();
 			final News savedNews = new News(
@@ -102,7 +135,8 @@ public class NewsServiceImplAopTest {
 				request.content(),
 				date,
 				date,
-				Util.createTestAuthor(request.authorId())
+				Util.createTestAuthor(request.authorId()),
+				new ArrayList<>()
 			);
 			when(newsRepository.create(any())).thenReturn(savedNews);
 			when(newsMapper.modelToDto(savedNews)).thenReturn(Util.newsToDTO(savedNews));
@@ -169,19 +203,32 @@ public class NewsServiceImplAopTest {
 
 		@Test
 		void update_shouldThrowValidationException_whenTitleIsNull() {
-			NewsRequestDto nullTitle = new NewsRequestDto(1L, null, "Some valid content", 2L);
+			NewsRequestDto nullTitle = new NewsRequestDto(
+				1L,
+				null,
+				"Some valid content",
+				2L,
+				null
+			);
 
 			assertThrows(ValidationException.class, () -> newsService.update(nullTitle));
 		}
 
 		@Test
 		void update_shouldThrowValidationException_whenTitleViolatesLengthConstraints() {
-			NewsRequestDto shortTitle = new NewsRequestDto(1L, "T", "Some valid content", 2L);
+			NewsRequestDto shortTitle = new NewsRequestDto(
+				1L,
+				"T",
+				"Some valid content",
+				2L,
+				null
+			);
 			NewsRequestDto longTitle = new NewsRequestDto(
 				1L,
 				"T".repeat(50),
 				"Some valid content",
-				2L
+				2L,
+				null
 			);
 
 			assertThrows(ValidationException.class, () -> newsService.update(shortTitle));
@@ -190,19 +237,32 @@ public class NewsServiceImplAopTest {
 
 		@Test
 		void update_shouldThrowValidationException_whenContentIsNull() {
-			NewsRequestDto nullContent = new NewsRequestDto(1L, "Some valid title", null, 2L);
+			NewsRequestDto nullContent = new NewsRequestDto(
+				1L,
+				"Some valid title",
+				null,
+				2L,
+				null
+			);
 
 			assertThrows(ValidationException.class, () -> newsService.update(nullContent));
 		}
 
 		@Test
 		void update_shouldThrowValidationException_whenContentViolatesLengthConstraints() {
-			NewsRequestDto shortContent = new NewsRequestDto(1L, "Some valid title", "C", 2L);
+			NewsRequestDto shortContent = new NewsRequestDto(
+				1L,
+				"Some valid title",
+				"C",
+				2L,
+				null
+			);
 			NewsRequestDto longContent = new NewsRequestDto(
 				1L,
 				"Some valid title",
 				"C".repeat(300),
-				2L
+				2L,
+				null
 			);
 
 			assertThrows(ValidationException.class, () -> newsService.update(shortContent));
@@ -216,7 +276,8 @@ public class NewsServiceImplAopTest {
 				id,
 				"Some updated title",
 				"Some updated content",
-				2L
+				2L,
+				new ArrayList<>()
 			);
 			final News updated = new News(
 				id,
@@ -224,10 +285,13 @@ public class NewsServiceImplAopTest {
 				"Some updated content",
 				LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 				LocalDateTime.now(),
-				Util.createTestAuthor(2L)
+				Util.createTestAuthor(2L),
+				new ArrayList<>()
 			);
 			when(authorRepository.existById(request.authorId())).thenReturn(true);
-			when(newsRepository.existById(request.id())).thenReturn(true);
+			when(authorRepository.readById(request.authorId()))
+				.thenReturn(Optional.of(Util.createTestAuthor(request.authorId())));
+			when(newsRepository.readById(id)).thenReturn(Optional.of(updated));
 			when(newsMapper.dtoToModel(request)).thenReturn(Util.dtoToNews(request));
 			when(newsRepository.update(any())).thenReturn(updated);
 			when(newsMapper.modelToDto(updated)).thenReturn(Util.newsToDTO(updated));

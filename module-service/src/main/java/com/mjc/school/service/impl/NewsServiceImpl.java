@@ -2,8 +2,10 @@ package com.mjc.school.service.impl;
 
 import com.mjc.school.repository.AuthorRepository;
 import com.mjc.school.repository.NewsRepository;
+import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.Author;
 import com.mjc.school.repository.model.News;
+import com.mjc.school.repository.model.Tag;
 import com.mjc.school.service.NewsService;
 import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.dto.NewsRequestDto;
@@ -14,8 +16,7 @@ import com.mjc.school.service.validator.annotation.NotNull;
 import com.mjc.school.service.validator.annotation.Valid;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,20 +26,24 @@ import static com.mjc.school.service.exception.ServiceErrorCode.ENTITY_NOT_FOUND
 @Service
 public class NewsServiceImpl implements NewsService {
 
-	private static final String NEWS_ENTITY_NAME = "news";
 	private static final String AUTHOR_ENTITY_NAME = "author";
+	private static final String NEWS_ENTITY_NAME = "news";
+	private static final String TAG_ENTITY_NAME = "tag";
 
 	private final AuthorRepository authorRepository;
 	private final NewsRepository newsRepository;
+	private final TagRepository tagRepository;
 	private final NewsMapper mapper;
 
 	public NewsServiceImpl(
 		final AuthorRepository authorRepository,
 		final NewsRepository newsRepository,
+		final TagRepository tagRepository,
 		final NewsMapper mapper
 	) {
 		this.authorRepository = authorRepository;
 		this.newsRepository = newsRepository;
+		this.tagRepository = tagRepository;
 		this.mapper = mapper;
 	}
 
@@ -46,9 +51,10 @@ public class NewsServiceImpl implements NewsService {
 	public NewsResponseDto create(@NotNull @Valid final NewsRequestDto request) throws EntityNotFoundException {
 		final News news = mapper.dtoToModel(request);
 		news.setAuthor(getAuthor(request.authorId()));
-		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-		news.setCreateDate(now);
-		news.setLastUpdateDate(now);
+		List<Long> tagIds = request.tags();
+		if (tagIds != null) {
+			news.setTags(getTags(tagIds));
+		}
 		return mapper.modelToDto(newsRepository.create(news));
 	}
 
@@ -66,8 +72,15 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
-	public List<NewsResponseDto> readNewsByParams(final Object[] params) {
-		throw new UnsupportedOperationException("Not implemented");
+	public List<NewsResponseDto> readNewsByParams(
+		final String tagName,
+		final Long tagId,
+		final String authorName,
+		final String title,
+		final String content
+	) {
+		return mapper.modelListToDtoList(
+			newsRepository.readByParams(tagName, tagId, authorName, title, content));
 	}
 
 	@Override
@@ -78,17 +91,21 @@ public class NewsServiceImpl implements NewsService {
 	@Override
 	public NewsResponseDto update(@NotNull @Valid final NewsRequestDto request) throws EntityNotFoundException {
 		final Long id = request.id();
-		if (id != null && newsRepository.existById(id)) {
-			final News news = mapper.dtoToModel(request);
-			news.setAuthor(getAuthor(request.authorId()));
-			news.setLastUpdateDate(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-			return mapper.modelToDto(newsRepository.update(news));
-		} else {
-			throw new EntityNotFoundException(
-				String.format(ENTITY_NOT_FOUND_BY_ID.getMessage(), NEWS_ENTITY_NAME, id),
-				ENTITY_NOT_FOUND_BY_ID.getCode()
-			);
+		if (id != null) {
+			final Optional<News> news = newsRepository.readById(id);
+			if (news.isPresent()) {
+				News updated = news.get();
+				updated.setTitle(request.title());
+				updated.setContent(request.content());
+				updated.setAuthor(getAuthor(request.authorId()));
+				updated.setTags(getTags(request.tags()));
+				return mapper.modelToDto(newsRepository.update(updated));
+			}
 		}
+		throw new EntityNotFoundException(
+			String.format(ENTITY_NOT_FOUND_BY_ID.getMessage(), NEWS_ENTITY_NAME, id),
+			ENTITY_NOT_FOUND_BY_ID.getCode()
+		);
 	}
 
 	@Override
@@ -111,6 +128,27 @@ public class NewsServiceImpl implements NewsService {
 		}
 		throw new EntityNotFoundException(
 			String.format(ENTITY_NOT_FOUND_BY_ID.getMessage(), AUTHOR_ENTITY_NAME, authorId),
+			ENTITY_NOT_FOUND_BY_ID.getCode()
+		);
+	}
+
+	private List<Tag> getTags(final List<Long> tagIds) throws EntityNotFoundException {
+		final List<Tag> tags = new ArrayList<>();
+		for (Long tagId : tagIds) {
+			tags.add(getTag(tagId));
+		}
+		return tags;
+	}
+
+	private Tag getTag(final Long tagId) throws EntityNotFoundException {
+		if (tagId != null) {
+			final Optional<Tag> tag = tagRepository.readById(tagId);
+			if (tag.isPresent()) {
+				return tag.get();
+			}
+		}
+		throw new EntityNotFoundException(
+			String.format(ENTITY_NOT_FOUND_BY_ID.getMessage(), TAG_ENTITY_NAME, tagId),
 			ENTITY_NOT_FOUND_BY_ID.getCode()
 		);
 	}

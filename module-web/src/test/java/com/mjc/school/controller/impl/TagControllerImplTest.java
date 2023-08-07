@@ -12,12 +12,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class TagControllerTest {
+class TagControllerImplTest {
 
 	@Mock
 	private TagServiceImpl tagService;
 	@InjectMocks
-	private TagController tagController;
+	private TagControllerImpl tagController;
 
 	@Test
 	void create_shouldInvokeServiceSaveMethod_whenInvoked() {

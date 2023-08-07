@@ -1,6 +1,8 @@
 package com.mjc.school.service.impl;
 
+import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
+import com.mjc.school.repository.model.News;
 import com.mjc.school.repository.model.Tag;
 import com.mjc.school.service.TagService;
 import com.mjc.school.service.mapper.TagMapper;
@@ -21,12 +23,19 @@ import static com.mjc.school.service.exception.ServiceErrorCode.ENTITY_NOT_FOUND
 @Service
 public class TagServiceImpl implements TagService {
 
+	private static final String NEWS_ENTITY_NAME = "news";
 	private static final String TAG_ENTITY_NAME = "tag";
 
+	private final NewsRepository newsRepository;
 	private final TagRepository tagRepository;
 	private final TagMapper tagMapper;
 
-	public TagServiceImpl(final TagRepository tagRepository, final TagMapper tagMapper) {
+	public TagServiceImpl(
+		final NewsRepository newsRepository,
+		final TagRepository tagRepository,
+		final TagMapper tagMapper
+	) {
+		this.newsRepository = newsRepository;
 		this.tagRepository = tagRepository;
 		this.tagMapper = tagMapper;
 	}
@@ -52,7 +61,13 @@ public class TagServiceImpl implements TagService {
 
 	@Override
 	public List<TagResponseDto> readTagsByNewsId(@NotNull @Min(ID_VALUE_MIN) final Long newsId) {
-		return tagMapper.modelListToDtoList(tagRepository.readTagsByNewsId(newsId));
+		if (newsRepository.existById(newsId)) {
+			return tagMapper.modelListToDtoList(tagRepository.readTagsByNewsId(newsId));
+		}
+		throw new EntityNotFoundException(
+			String.format(ENTITY_NOT_FOUND_BY_ID.getMessage(), NEWS_ENTITY_NAME, newsId),
+			ENTITY_NOT_FOUND_BY_ID.getCode()
+		);
 	}
 
 	@Override
@@ -78,6 +93,12 @@ public class TagServiceImpl implements TagService {
 	@Override
 	public boolean deleteById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		if (tagRepository.existById(id)) {
+			List<News> newsWithTag =
+				newsRepository.readByParams(null, id, null, null, null);
+			for (News news : newsWithTag) {
+				news.getTags().removeIf(t -> id.equals(t.getId()));
+				newsRepository.update(news);
+			}
 			return tagRepository.deleteById(id);
 		} else {
 			throw new EntityNotFoundException(

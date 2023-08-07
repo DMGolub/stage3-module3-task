@@ -136,10 +136,10 @@ class AuthorServiceImplTest {
 		void update_shouldThrowEntityNotFoundException_whenEntityWithGivenIdNotFound() {
 			final long id = 99L;
 			final AuthorRequestDto request = Util.createTestAuthorRequest(id);
-			when(authorRepository.existById(request.id())).thenReturn(false);
+			when(authorRepository.readById(request.id())).thenReturn(Optional.empty());
 
 			assertThrows(EntityNotFoundException.class, () -> authorService.update(request));
-			verify(authorRepository, times(1)).existById(request.id());
+			verify(authorRepository, times(1)).readById(request.id());
 			verify(authorRepository, times(0)).update(any());
 		}
 
@@ -153,15 +153,14 @@ class AuthorServiceImplTest {
 				LocalDateTime.of(2023, 7, 17, 16, 30, 0),
 				LocalDateTime.now()
 			);
-			when(authorRepository.existById(request.id())).thenReturn(true);
-			when(authorMapper.dtoToModel(request)).thenReturn(updated);
+			when(authorRepository.readById(request.id())).thenReturn(Optional.of(updated));
 			when(authorRepository.update(any())).thenReturn(updated);
 			final AuthorResponseDto response = Util.authorToDTO(updated);
 			when(authorMapper.modelToDto(updated)).thenReturn(response);
 
 			final AuthorResponseDto result = authorService.update(request);
 
-			verify(authorRepository, times(1)).existById(request.id());
+			verify(authorRepository, times(1)).readById(request.id());
 			verify(authorRepository, times(1)).update(any());
 			assertEquals(response, result);
 		}
@@ -192,7 +191,7 @@ class AuthorServiceImplTest {
 		}
 
 		@Test
-		void deleteById_shouldReturnFalse_whenRepositoryDoesNotDeletesEntityById() {
+		void deleteById_shouldReturnFalse_whenRepositoryDoesNotDeleteEntityById() {
 			final long id = 99L;
 			when(authorRepository.existById(id)).thenReturn(true);
 			when(authorRepository.deleteById(id)).thenReturn(false);

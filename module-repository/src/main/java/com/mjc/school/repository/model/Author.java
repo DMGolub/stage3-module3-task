@@ -1,7 +1,7 @@
 package com.mjc.school.repository.model;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -26,10 +26,10 @@ public class Author implements BaseEntity<Long> {
 	private Long id;
 	@Column(name = "author_name", nullable = false)
 	private String name;
-	@CreatedDate
+	@CreationTimestamp
 	@Column(name = "author_create_date", nullable = false)
 	private LocalDateTime createDate;
-	@LastModifiedDate
+	@UpdateTimestamp
 	@Column(name = "author_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "author", cascade = CascadeType.REMOVE)

@@ -12,16 +12,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class NewsControllerTest {
+class NewsControllerImplTest {
 
 	@Mock
 	private NewsServiceImpl newsService;
 	@InjectMocks
-	private NewsController newsController;
+	private NewsControllerImpl newsController;
 
 	@Test
 	void create_shouldInvokeServiceSaveMethod_whenInvoked() {
-		final NewsRequestDto request = new NewsRequestDto(null, "Title", "Content", 1L);
+		final NewsRequestDto request = new NewsRequestDto(
+			null,
+			"Title",
+			"Content",
+			1L,
+			null
+		);
 
 		newsController.create(request);
 		verify(newsService, times(1)).create(request);
@@ -44,7 +50,13 @@ class NewsControllerTest {
 
 	@Test
 	void update_shouldInvokeServiceUpdateMethod_whenInvoked() {
-		final NewsRequestDto request = new NewsRequestDto(15L, "Title", "Content", 1L);
+		final NewsRequestDto request = new NewsRequestDto(
+			15L,
+			"Title",
+			"Content",
+			1L,
+			null
+		);
 
 		newsController.update(request);
 		verify(newsService, times(1)).update(request);

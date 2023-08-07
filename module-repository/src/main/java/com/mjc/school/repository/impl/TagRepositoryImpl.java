@@ -2,7 +2,10 @@ package com.mjc.school.repository.impl;
 
 import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -15,6 +18,8 @@ public class TagRepositoryImpl implements TagRepository {
 
 	@PersistenceContext
 	private EntityManager entityManager;
+	@Autowired
+	private PlatformTransactionManager transactionManager;
 
 	@Override
 	public List<Tag> readAll() {
@@ -35,7 +40,7 @@ public class TagRepositoryImpl implements TagRepository {
 	public List<Tag> readTagsByNewsId(final Long newsId) {
 		if (newsId != null) {
 			final String query = "SELECT n.tags FROM News AS n WHERE n.id = :newsId";
-			return entityManager.createQuery(query, Tag.class)
+			return entityManager.createQuery(query)
 				.setParameter("newsId", newsId)
 				.getResultList();
 		}
@@ -45,28 +50,54 @@ public class TagRepositoryImpl implements TagRepository {
 	@Override
 	public Tag create(final Tag tag) {
 		if (tag != null) {
-			entityManager.persist(tag);
-			return tag;
+			final var transactionDefinition = new DefaultTransactionDefinition();
+			final var transactionStatus = transactionManager.getTransaction(transactionDefinition);
+			try {
+				entityManager.persist(tag);
+				transactionManager.commit(transactionStatus);
+				return tag;
+			} catch (Exception e) {
+				transactionManager.rollback(transactionStatus);
+				throw e;
+			}
 		}
 		return null;
 	}
 
 	@Override
 	public Tag update(final Tag tag) {
+		final var transactionDefinition = new DefaultTransactionDefinition();
+		final var transactionStatus = transactionManager.getTransaction(transactionDefinition);
 		if (tag != null && existById(tag.getId())) {
-			entityManager.merge(tag);
-			return tag;
+			try {
+				entityManager.merge(tag);
+				transactionManager.commit(transactionStatus);
+				return entityManager.find(Tag.class, tag.getId());
+			} catch (Exception e) {
+				transactionManager.rollback(transactionStatus);
+				throw e;
+			}
 		}
+		transactionManager.rollback(transactionStatus);
 		return null;
 	}
 
 	@Override
 	public boolean deleteById(final Long id) {
+		final var transactionDefinition = new DefaultTransactionDefinition();
+		final var transactionStatus = transactionManager.getTransaction(transactionDefinition);
 		final Optional<Tag> tag = readById(id);
 		if (tag.isPresent()) {
-			entityManager.remove(tag.get());
-			return !existById(id);
+			try {
+				entityManager.remove(tag.get());
+				transactionManager.commit(transactionStatus);
+				return !existById(id);
+			} catch (Exception e) {
+				transactionManager.rollback(transactionStatus);
+				throw e;
+			}
 		}
+		transactionManager.rollback(transactionStatus);
 		return false;
 	}
 

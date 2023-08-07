@@ -3,13 +3,14 @@ package com.mjc.school.helper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Function;
 
-import static com.mjc.school.helper.Constant.AUTHOR_ID;
 import static com.mjc.school.helper.Constant.AUTHOR_ID_ENTER;
 import static com.mjc.school.helper.Constant.AUTHOR_ID_MIN_VALUE;
 import static com.mjc.school.helper.Constant.AUTHOR_NAME_ENTER;
@@ -18,13 +19,13 @@ import static com.mjc.school.helper.Constant.AUTHOR_NAME_MIN_LENGTH;
 import static com.mjc.school.helper.Constant.NEWS_CONTENT_ENTER;
 import static com.mjc.school.helper.Constant.NEWS_CONTENT_MAX_LENGTH;
 import static com.mjc.school.helper.Constant.NEWS_CONTENT_MIN_LENGTH;
-import static com.mjc.school.helper.Constant.NEWS_ID;
 import static com.mjc.school.helper.Constant.NEWS_ID_ENTER;
 import static com.mjc.school.helper.Constant.NEWS_ID_MIN_VALUE;
 import static com.mjc.school.helper.Constant.NEWS_TITLE_ENTER;
 import static com.mjc.school.helper.Constant.NEWS_TITLE_MAX_LENGTH;
 import static com.mjc.school.helper.Constant.NEWS_TITLE_MIN_LENGTH;
 import static com.mjc.school.helper.Constant.NUMBER_OPERATION_ENTER;
+import static com.mjc.school.helper.Constant.TAGS_NUMBER_ENTER;
 import static com.mjc.school.helper.Constant.TAG_ID;
 import static com.mjc.school.helper.Constant.TAG_ID_ENTER;
 import static com.mjc.school.helper.Constant.TAG_ID_MIN_VALUE;
@@ -108,12 +109,46 @@ public class MenuHelper {
 		printStream.println(NEWS_ID_ENTER);
 		return new Command(
 			GET_NEWS_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID, NEWS_ID_MIN_VALUE, keyboard))),
-			null);
+			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
+			null
+		);
 	}
 
 	private Command getNewsByParams(final Scanner keyboard) {
-		throw new UnsupportedOperationException("Not implemented yet");		// FIXME
+
+		final Map<String, String> params = new HashMap<>();
+
+		if (userConfirmsOption("Search news by tag name?", keyboard)) {
+			printStream.println(TAG_NAME_ENTER);
+			final String tagName = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
+			params.put("tagName", tagName);
+		}
+
+		if (userConfirmsOption("Search news by tag id?", keyboard)) {
+			printStream.println(TAG_ID_ENTER);
+			final Long tagId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
+			params.put("tagId", tagId.toString());
+		}
+
+		if (userConfirmsOption("Search news by author name?", keyboard)) {
+			printStream.println(AUTHOR_NAME_ENTER);
+			final String authorName = readText(AUTHOR_NAME_MIN_LENGTH, AUTHOR_NAME_MAX_LENGTH, keyboard);
+			params.put("authorName", authorName);
+		}
+
+		if (userConfirmsOption("Search news by title?", keyboard)) {
+			printStream.println(NEWS_TITLE_ENTER);
+			final String title = readText(NEWS_TITLE_MIN_LENGTH, NEWS_TITLE_MAX_LENGTH, keyboard);
+			params.put("title", title);
+		}
+
+		if (userConfirmsOption("Search news by content?", keyboard)) {
+			printStream.println(NEWS_CONTENT_ENTER);
+			final String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
+			params.put("content", content);
+		}
+
+		return new Command(GET_NEWS_BY_PARAMS.getOperationNumber(), params, null);
 	}
 
 	private Command createNews(final Scanner keyboard) {
@@ -127,13 +162,19 @@ public class MenuHelper {
 				printStream.println(NEWS_CONTENT_ENTER);
 				String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
 				printStream.println(AUTHOR_ID_ENTER);
-				long authorId = getLongWithLowerBound(AUTHOR_ID, NEWS_ID_MIN_VALUE, keyboard);
+				final long authorId = getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard);
+				final List<Long> tagIds = getTagIds(keyboard);
+				Map<String, Object> body = Map.of(
+					"title", title,
+					"content", content,
+					"authorId", Long.toString(authorId),
+					"tags", tagIds
+				);
 
-				Map<String, String> body =
-					Map.of("title", title, "content", content, "authorId", Long.toString(authorId));
-
-				command =
-					new Command(CREATE_NEWS.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = new Command(
+					CREATE_NEWS.getOperationNumber(),
+					null, mapper.writeValueAsString(body)
+				);
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -150,27 +191,27 @@ public class MenuHelper {
 			try {
 				printStream.println(UPDATE_NEWS.getOperation());
 				printStream.println(NEWS_ID_ENTER);
-				long newsId = getLongWithLowerBound(NEWS_ID, 1L, keyboard);
+				final long newsId = getLongWithLowerBound(1L, keyboard);
 				printStream.println(NEWS_TITLE_ENTER);
-				String title = readText(NEWS_TITLE_MIN_LENGTH, NEWS_TITLE_MAX_LENGTH, keyboard);
+				final String title = readText(NEWS_TITLE_MIN_LENGTH, NEWS_TITLE_MAX_LENGTH, keyboard);
 				printStream.println(NEWS_CONTENT_ENTER);
-				String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
+				final String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
 				printStream.println(AUTHOR_ID_ENTER);
-				long authorId = getLongWithLowerBound(AUTHOR_ID, AUTHOR_ID_MIN_VALUE, keyboard);
+				final long authorId = getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard);
+				final List<Long> tagIds = getTagIds(keyboard);
 
-				Map<String, String> body =
-					Map.of(
-						"id",
-						Long.toString(newsId),
-						"title",
-						title,
-						"content",
-						content,
-						"authorId",
-						Long.toString(authorId));
+				Map<String, Object> body = Map.of(
+					"id", Long.toString(newsId),
+					"title", title,
+					"content", content,
+					"authorId", Long.toString(authorId),
+					"tags", tagIds
+				);
 
-				command =
-					new Command(UPDATE_NEWS.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = new Command(
+					UPDATE_NEWS.getOperationNumber(),
+					null, mapper.writeValueAsString(body)
+				);
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -185,7 +226,7 @@ public class MenuHelper {
 		printStream.println(NEWS_ID_ENTER);
 		return new Command(
 			REMOVE_NEWS_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(NEWS_ID, NEWS_ID_MIN_VALUE, keyboard))),
+			Map.of("id", Long.toString(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -199,7 +240,7 @@ public class MenuHelper {
 		printStream.println(AUTHOR_ID_ENTER);
 		return new Command(
 			GET_AUTHOR_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(AUTHOR_ID, AUTHOR_ID_MIN_VALUE, keyboard))),
+			Map.of("id", String.valueOf(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -208,7 +249,7 @@ public class MenuHelper {
 		printStream.println(NEWS_ID_ENTER);
 		return new Command(
 			GET_AUTHOR_BY_NEWS_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID, NEWS_ID_MIN_VALUE, keyboard))),
+			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -240,7 +281,7 @@ public class MenuHelper {
 			try {
 				printStream.println(UPDATE_AUTHOR.getOperation());
 				printStream.println(AUTHOR_ID_ENTER);
-				long authorId = getLongWithLowerBound(AUTHOR_ID, AUTHOR_ID_MIN_VALUE, keyboard);
+				long authorId = getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard);
 				printStream.println(AUTHOR_NAME_ENTER);
 				String name = keyboard.nextLine();
 
@@ -261,7 +302,7 @@ public class MenuHelper {
 		printStream.println(AUTHOR_ID_ENTER);
 		return new Command(
 			REMOVE_AUTHOR_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(AUTHOR_ID, AUTHOR_ID_MIN_VALUE, keyboard))),
+			Map.of("id", Long.toString(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -275,7 +316,7 @@ public class MenuHelper {
 		printStream.println(TAG_ID_ENTER);
 		return new Command(
 			GET_TAG_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(TAG_ID, TAG_ID_MIN_VALUE, keyboard))),
+			Map.of("id", String.valueOf(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -284,7 +325,7 @@ public class MenuHelper {
 		printStream.println(NEWS_ID_ENTER);
 		return new Command(
 			GET_TAGS_BY_NEWS_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID, NEWS_ID_MIN_VALUE, keyboard))),
+			Map.of("newsId", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -298,14 +339,16 @@ public class MenuHelper {
 				String name = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
 
 				Map<String, String> body = Map.of("name", name);
-				command =
-					new Command(CREATE_TAG.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = new Command(
+					CREATE_TAG.getOperationNumber(),
+					null,
+					mapper.writeValueAsString(body)
+				);
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
 			}
 		}
-
 		return command;
 	}
 
@@ -316,7 +359,7 @@ public class MenuHelper {
 			try {
 				printStream.println(UPDATE_TAG.getOperation());
 				printStream.println(TAG_ID_ENTER);
-				long authorId = getLongWithLowerBound(TAG_ID, TAG_ID_MIN_VALUE, keyboard);
+				long authorId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
 				printStream.println(TAG_NAME_ENTER);
 				String name = keyboard.nextLine();
 
@@ -328,7 +371,6 @@ public class MenuHelper {
 				printStream.println(ex.getMessage());
 			}
 		}
-
 		return command;
 	}
 
@@ -337,7 +379,7 @@ public class MenuHelper {
 		printStream.println(TAG_ID_ENTER);
 		return new Command(
 			REMOVE_TAG_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(TAG_ID, TAG_ID_MIN_VALUE, keyboard))),
+			Map.of("id", Long.toString(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))),
 			null);
 	}
 
@@ -356,8 +398,7 @@ public class MenuHelper {
 		return result;
 	}
 
-	public long getLongWithLowerBound(final String message,	final long lowerBound, final Scanner keyboard) {
-		printStream.println(message);
+	public long getLongWithLowerBound(final long lowerBound, final Scanner keyboard) {
 		Long result = null;
 		do {
 			printStream.print(">");
@@ -373,5 +414,34 @@ public class MenuHelper {
 			keyboard.nextLine();
 		} while (result == null);
 		return result;
+	}
+
+	private List<Long> getTagIds(final Scanner keyboard) {
+		printStream.println(TAGS_NUMBER_ENTER);
+		final long minimumIdCount = 0L;
+		final long numberOfTags = getLongWithLowerBound(minimumIdCount, keyboard);
+		List<Long> tagIds = new ArrayList<>();
+		for (long i = 0; i < numberOfTags; i++) {
+			printStream.println(TAG_ID + " №" +  (i + 1));
+			final long tagId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
+			tagIds.add(tagId);
+		}
+		return tagIds;
+	}
+
+	private boolean userConfirmsOption(final String message, final Scanner keyboard) {
+		printStream.print(message);
+		printStream.println(" Please enter [y/n]:");
+		while (true) {
+			printStream.print(">");
+			final String answer = keyboard.nextLine();
+			if ("Y".equalsIgnoreCase(answer)) {
+				return true;
+			}
+			if ("N".equalsIgnoreCase(answer)) {
+				return false;
+			}
+			printStream.println("You typed wrong command. Please try again:");
+		}
 	}
 }

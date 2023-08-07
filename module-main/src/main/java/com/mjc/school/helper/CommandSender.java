@@ -36,6 +36,7 @@ public class CommandSender {
 
 		stringToObjectMappers = new HashMap<>();
 		stringToObjectMappers.put(Long.class, Long::valueOf);
+		stringToObjectMappers.put(String.class, String::valueOf);
 	}
 
 	public Object send(final Command command) throws Exception {
@@ -83,7 +84,6 @@ public class CommandSender {
 
 	private Object[] getMethodArgs(Command command, Method method) throws JsonProcessingException {
 		List<Object> args = new ArrayList<>();
-
 		Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 		for (int i = 0; i < parameterAnnotations.length; i++) {
 			for (Annotation parameterAnnotation : parameterAnnotations[i]) {
@@ -93,7 +93,11 @@ public class CommandSender {
 				} else if (parameterAnnotation instanceof CommandParam an && command.params() != null) {
 					Parameter parameter = method.getParameters()[i];
 					String value = command.params().get(an.name());
-					args.add(stringToObjectMappers.get(parameter.getType()).apply(value));
+					args.add(
+						value != null
+						? stringToObjectMappers.get(parameter.getType()).apply(value)
+						: null
+					);
 				}
 			}
 		}

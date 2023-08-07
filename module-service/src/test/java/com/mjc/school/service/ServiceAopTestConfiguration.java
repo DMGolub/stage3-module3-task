@@ -3,6 +3,9 @@ package com.mjc.school.service;
 import com.mjc.school.repository.AuthorRepository;
 import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
+import com.mjc.school.repository.impl.AuthorRepositoryImpl;
+import com.mjc.school.repository.impl.NewsRepositoryImpl;
+import com.mjc.school.repository.impl.TagRepositoryImpl;
 import com.mjc.school.service.mapper.AuthorMapper;
 import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.mapper.TagMapper;
@@ -22,19 +25,19 @@ public class ServiceAopTestConfiguration {
 	@Bean
 	@Primary
 	public AuthorRepository authorRepository() {
-		return mock(AuthorRepository.class);
+		return mock(AuthorRepositoryImpl.class);
 	}
 
 	@Bean
 	@Primary
 	public NewsRepository newsRepository() {
-		return mock(NewsRepository.class);
+		return mock(NewsRepositoryImpl.class);
 	}
 
 	@Bean
 	@Primary
 	public TagRepository tagRepository() {
-		return mock(TagRepository.class);
+		return mock(TagRepositoryImpl.class);
 	}
 
 	@Bean

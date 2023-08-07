@@ -1,6 +1,6 @@
 package com.mjc.school.controller.impl;
 
-import com.mjc.school.controller.BaseController;
+import com.mjc.school.controller.AuthorController;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 
 @Controller
-public class AuthorController implements BaseController<AuthorRequestDto, AuthorResponseDto, Long> {
+public class AuthorControllerImpl implements AuthorController {
 
 	private final AuthorService authorService;
 
-	public AuthorController(final AuthorService authorService) {
+	public AuthorControllerImpl(final AuthorService authorService) {
 		this.authorService = authorService;
 	}
 
@@ -32,6 +32,7 @@ public class AuthorController implements BaseController<AuthorRequestDto, Author
 		return authorService.readById(id);
 	}
 
+	@Override
 	@CommandHandler(operation = 9)
 	public AuthorResponseDto readByNewsId(@CommandParam(name = "id") final Long newsId) {
 		return authorService.readAuthorByNewsId(newsId);
