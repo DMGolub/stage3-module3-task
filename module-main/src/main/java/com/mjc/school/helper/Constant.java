@@ -3,6 +3,7 @@ package com.mjc.school.helper;
 public class Constant {
 
 	public static final String TAG_ID = "Tag id";
+	public static final String TAG_NAME = "Tag name";
 	public static final String NUMBER_OPERATION_ENTER = "Enter the number of operation:";
 	public static final String AUTHOR_ID_ENTER = "Enter author id:";
 	public static final String AUTHOR_NAME_ENTER = "Enter author name:";

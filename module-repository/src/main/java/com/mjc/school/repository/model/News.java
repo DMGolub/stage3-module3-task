@@ -1,10 +1,12 @@
 package com.mjc.school.repository.model;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,6 +22,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name="News")
+@EntityListeners(AuditingEntityListener.class)
 public class News implements BaseEntity<Long> {
 
 	@Id
@@ -30,10 +33,10 @@ public class News implements BaseEntity<Long> {
 	private String title;
 	@Column(name = "news_content", nullable = false)
 	private String content;
-	@CreationTimestamp
+	@CreatedDate
 	@Column(name = "news_create_date", nullable = false)
 	private LocalDateTime createDate;
-	@UpdateTimestamp
+	@LastModifiedDate
 	@Column(name = "news_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
 	@ManyToOne(fetch = FetchType.EAGER)

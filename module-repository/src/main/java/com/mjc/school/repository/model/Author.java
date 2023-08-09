@@ -1,11 +1,13 @@
 package com.mjc.school.repository.model;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,6 +20,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name="Author")
+@EntityListeners(AuditingEntityListener.class)
 public class Author implements BaseEntity<Long> {
 
 	@Id
@@ -26,10 +29,10 @@ public class Author implements BaseEntity<Long> {
 	private Long id;
 	@Column(name = "author_name", nullable = false)
 	private String name;
-	@CreationTimestamp
+	@CreatedDate
 	@Column(name = "author_create_date", nullable = false)
 	private LocalDateTime createDate;
-	@UpdateTimestamp
+	@LastModifiedDate
 	@Column(name = "author_last_update_date", nullable = false)
 	private LocalDateTime lastUpdateDate;
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "author", cascade = CascadeType.REMOVE)

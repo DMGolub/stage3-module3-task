@@ -11,6 +11,7 @@ import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
 import com.mjc.school.service.exception.EntityNotFoundException;
+import com.mjc.school.service.query.NewsQueryParams;
 import com.mjc.school.service.validator.annotation.Min;
 import com.mjc.school.service.validator.annotation.NotNull;
 import com.mjc.school.service.validator.annotation.Valid;
@@ -72,15 +73,9 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
-	public List<NewsResponseDto> readNewsByParams(
-		final String tagName,
-		final Long tagId,
-		final String authorName,
-		final String title,
-		final String content
-	) {
+	public List<NewsResponseDto> readNewsByParams(@NotNull final NewsQueryParams newsQueryParams) {
 		return mapper.modelListToDtoList(
-			newsRepository.readByParams(tagName, tagId, authorName, title, content));
+			newsRepository.readByParams(mapper.mapQueryParams(newsQueryParams)));
 	}
 
 	@Override

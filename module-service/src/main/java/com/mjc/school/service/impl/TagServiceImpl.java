@@ -4,6 +4,7 @@ import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.News;
 import com.mjc.school.repository.model.Tag;
+import com.mjc.school.repository.query.NewsSearchQueryParams;
 import com.mjc.school.service.TagService;
 import com.mjc.school.service.mapper.TagMapper;
 import com.mjc.school.service.dto.TagRequestDto;
@@ -93,8 +94,9 @@ public class TagServiceImpl implements TagService {
 	@Override
 	public boolean deleteById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		if (tagRepository.existById(id)) {
-			List<News> newsWithTag =
-				newsRepository.readByParams(null, id, null, null, null);
+			NewsSearchQueryParams params =
+				new NewsSearchQueryParams(null, List.of(id), null, null, null);
+			List<News> newsWithTag = newsRepository.readByParams(params);
 			for (News news : newsWithTag) {
 				news.getTags().removeIf(t -> id.equals(t.getId()));
 				newsRepository.update(news);

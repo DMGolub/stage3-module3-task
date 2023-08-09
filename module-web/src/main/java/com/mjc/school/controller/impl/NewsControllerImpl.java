@@ -4,9 +4,11 @@ import com.mjc.school.controller.NewsController;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
+import com.mjc.school.controller.annotation.CommandQueryParams;
 import com.mjc.school.service.NewsService;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
+import com.mjc.school.service.query.NewsQueryParams;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -34,14 +36,8 @@ public class NewsControllerImpl implements NewsController {
 
 	@Override
 	@CommandHandler(operation = 3)
-	public List<NewsResponseDto> readNewsByParams(
-		@CommandParam(name = "tagName") final String tagName,
-		@CommandParam(name = "tagId") final Long tagId,
-		@CommandParam(name = "authorName") final String authorName,
-		@CommandParam(name = "title") final String title,
-		@CommandParam(name = "content") final String content
-	) {
-		return newsService.readNewsByParams(tagName, tagId, authorName, title, content);
+	public List<NewsResponseDto> readNewsByParams(@CommandQueryParams final NewsQueryParams newsQueryParams) {
+		return newsService.readNewsByParams(newsQueryParams);
 	}
 
 	@Override
