@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjc.school.controller.annotation.CommandBody;
 import com.mjc.school.controller.annotation.CommandHandler;
 import com.mjc.school.controller.annotation.CommandParam;
+import com.mjc.school.controller.annotation.CommandQueryParams;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
@@ -98,6 +99,9 @@ public class CommandSender {
 						? stringToObjectMappers.get(parameter.getType()).apply(value)
 						: null
 					);
+				} else if (parameterAnnotation instanceof CommandQueryParams) {
+					Parameter parameter = method.getParameters()[i];
+					args.add(mapper.readValue(command.queryParams(), parameter.getType()));
 				}
 			}
 		}

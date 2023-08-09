@@ -29,6 +29,7 @@ import static com.mjc.school.helper.Constant.TAGS_NUMBER_ENTER;
 import static com.mjc.school.helper.Constant.TAG_ID;
 import static com.mjc.school.helper.Constant.TAG_ID_ENTER;
 import static com.mjc.school.helper.Constant.TAG_ID_MIN_VALUE;
+import static com.mjc.school.helper.Constant.TAG_NAME;
 import static com.mjc.school.helper.Constant.TAG_NAME_ENTER;
 import static com.mjc.school.helper.Constant.TAG_NAME_MAX_LENGTH;
 import static com.mjc.school.helper.Constant.TAG_NAME_MIN_LENGTH;
@@ -101,54 +102,61 @@ public class MenuHelper {
 
 	private Command getNews(final Scanner keyboard) {
 		printStream.println(GET_ALL_NEWS.getOperation());
+
 		return Command.GET_NEWS;
 	}
 
 	private Command getNewsById(final Scanner keyboard) {
 		printStream.println(GET_NEWS_BY_ID.getOperation());
 		printStream.println(NEWS_ID_ENTER);
-		return new Command(
-			GET_NEWS_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
-			null
-		);
+
+		return Command.builder()
+			.operation(GET_NEWS_BY_ID.getOperationNumber())
+			.params(Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command getNewsByParams(final Scanner keyboard) {
+		Command command = null;
+		final Map<String, Object> params = new HashMap<>();
+		try {
+			if (userConfirmsOption("Search news by tag names?", keyboard)) {
+				final List<String> tagNames = getTagNames(keyboard);
+				params.put("tagNames", tagNames);
+			}
 
-		final Map<String, String> params = new HashMap<>();
+			if (userConfirmsOption("Search news by tag ids?", keyboard)) {
+				final List<Long> tagIds = getTagIds(keyboard);
+				params.put("tagIds", tagIds);
+			}
 
-		if (userConfirmsOption("Search news by tag name?", keyboard)) {
-			printStream.println(TAG_NAME_ENTER);
-			final String tagName = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
-			params.put("tagName", tagName);
+			if (userConfirmsOption("Search news by author name?", keyboard)) {
+				printStream.println(AUTHOR_NAME_ENTER);
+				final String authorName = readText(AUTHOR_NAME_MIN_LENGTH, AUTHOR_NAME_MAX_LENGTH, keyboard);
+				params.put("authorName", authorName);
+			}
+
+			if (userConfirmsOption("Search news by title?", keyboard)) {
+				printStream.println(NEWS_TITLE_ENTER);
+				final String title = readText(NEWS_TITLE_MIN_LENGTH, NEWS_TITLE_MAX_LENGTH, keyboard);
+				params.put("title", title);
+			}
+
+			if (userConfirmsOption("Search news by content?", keyboard)) {
+				printStream.println(NEWS_CONTENT_ENTER);
+				final String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
+				params.put("content", content);
+			}
+
+			command = Command.builder()
+				.operation(GET_NEWS_BY_PARAMS.getOperationNumber())
+				.queryParams(mapper.writeValueAsString(params))
+				.build();
+		} catch (Exception ex) {
+			printStream.println(ex.getMessage());
 		}
 
-		if (userConfirmsOption("Search news by tag id?", keyboard)) {
-			printStream.println(TAG_ID_ENTER);
-			final Long tagId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
-			params.put("tagId", tagId.toString());
-		}
-
-		if (userConfirmsOption("Search news by author name?", keyboard)) {
-			printStream.println(AUTHOR_NAME_ENTER);
-			final String authorName = readText(AUTHOR_NAME_MIN_LENGTH, AUTHOR_NAME_MAX_LENGTH, keyboard);
-			params.put("authorName", authorName);
-		}
-
-		if (userConfirmsOption("Search news by title?", keyboard)) {
-			printStream.println(NEWS_TITLE_ENTER);
-			final String title = readText(NEWS_TITLE_MIN_LENGTH, NEWS_TITLE_MAX_LENGTH, keyboard);
-			params.put("title", title);
-		}
-
-		if (userConfirmsOption("Search news by content?", keyboard)) {
-			printStream.println(NEWS_CONTENT_ENTER);
-			final String content = readText(NEWS_CONTENT_MIN_LENGTH, NEWS_CONTENT_MAX_LENGTH, keyboard);
-			params.put("content", content);
-		}
-
-		return new Command(GET_NEWS_BY_PARAMS.getOperationNumber(), params, null);
+		return command;
 	}
 
 	private Command createNews(final Scanner keyboard) {
@@ -164,17 +172,17 @@ public class MenuHelper {
 				printStream.println(AUTHOR_ID_ENTER);
 				final long authorId = getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard);
 				final List<Long> tagIds = getTagIds(keyboard);
-				Map<String, Object> body = Map.of(
+				final Map<String, Object> body = Map.of(
 					"title", title,
 					"content", content,
-					"authorId", Long.toString(authorId),
+					"author", Long.toString(authorId),
 					"tags", tagIds
 				);
 
-				command = new Command(
-					CREATE_NEWS.getOperationNumber(),
-					null, mapper.writeValueAsString(body)
-				);
+				command = Command.builder()
+					.operation(CREATE_NEWS.getOperationNumber())
+					.body(mapper.writeValueAsString(body))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -200,18 +208,18 @@ public class MenuHelper {
 				final long authorId = getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard);
 				final List<Long> tagIds = getTagIds(keyboard);
 
-				Map<String, Object> body = Map.of(
+				final Map<String, Object> body = Map.of(
 					"id", Long.toString(newsId),
 					"title", title,
 					"content", content,
-					"authorId", Long.toString(authorId),
+					"author", Long.toString(authorId),
 					"tags", tagIds
 				);
 
-				command = new Command(
-					UPDATE_NEWS.getOperationNumber(),
-					null, mapper.writeValueAsString(body)
-				);
+				command = Command.builder()
+					.operation(UPDATE_NEWS.getOperationNumber())
+					.body(mapper.writeValueAsString(body))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -224,33 +232,37 @@ public class MenuHelper {
 	private Command deleteNews(final Scanner keyboard) {
 		printStream.println(REMOVE_NEWS_BY_ID.getOperation());
 		printStream.println(NEWS_ID_ENTER);
-		return new Command(
-			REMOVE_NEWS_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(REMOVE_NEWS_BY_ID.getOperationNumber())
+			.params(Map.of("id", Long.toString(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command getAuthors(final Scanner keyboard) {
 		printStream.println(GET_ALL_AUTHORS.getOperation());
+
 		return Command.GET_AUTHORS;
 	}
 
 	private Command getAuthorById(final Scanner keyboard) {
 		printStream.println(GET_AUTHOR_BY_ID.getOperation());
 		printStream.println(AUTHOR_ID_ENTER);
-		return new Command(
-			GET_AUTHOR_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(GET_AUTHOR_BY_ID.getOperationNumber())
+			.params(Map.of("id", String.valueOf(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command getAuthorByNewsId(final Scanner keyboard) {
 		printStream.println(GET_AUTHOR_BY_NEWS_ID.getOperation());
 		printStream.println(NEWS_ID_ENTER);
-		return new Command(
-			GET_AUTHOR_BY_NEWS_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(GET_AUTHOR_BY_NEWS_ID.getOperationNumber())
+			.params(Map.of("id", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command createAuthor(final Scanner keyboard) {
@@ -260,11 +272,12 @@ public class MenuHelper {
 			try {
 				printStream.println(CREATE_AUTHOR.getOperation());
 				printStream.println(AUTHOR_NAME_ENTER);
-				String name = readText(AUTHOR_NAME_MIN_LENGTH, AUTHOR_NAME_MAX_LENGTH, keyboard);
+				final String name = readText(AUTHOR_NAME_MIN_LENGTH, AUTHOR_NAME_MAX_LENGTH, keyboard);
 
-				Map<String, String> body = Map.of("name", name);
-				command =
-					new Command(CREATE_AUTHOR.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = Command.builder()
+					.operation(CREATE_AUTHOR.getOperationNumber())
+					.body(mapper.writeValueAsString(Map.of("name", name)))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -281,13 +294,14 @@ public class MenuHelper {
 			try {
 				printStream.println(UPDATE_AUTHOR.getOperation());
 				printStream.println(AUTHOR_ID_ENTER);
-				long authorId = getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard);
+				final long authorId = getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard);
 				printStream.println(AUTHOR_NAME_ENTER);
-				String name = keyboard.nextLine();
+				final String name = keyboard.nextLine();
 
-				Map<String, String> body = Map.of("id", Long.toString(authorId), "name", name);
-				command =
-					new Command(UPDATE_AUTHOR.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = Command.builder()
+					.operation(UPDATE_AUTHOR.getOperationNumber())
+					.body(mapper.writeValueAsString(Map.of("id", Long.toString(authorId), "name", name)))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
@@ -300,33 +314,37 @@ public class MenuHelper {
 	private Command deleteAuthor(final Scanner keyboard) {
 		printStream.println(REMOVE_AUTHOR_BY_ID.getOperation());
 		printStream.println(AUTHOR_ID_ENTER);
-		return new Command(
-			REMOVE_AUTHOR_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(REMOVE_AUTHOR_BY_ID.getOperationNumber())
+			.params(Map.of("id", Long.toString(getLongWithLowerBound(AUTHOR_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command getTags(final Scanner keyboard) {
 		printStream.println(GET_ALL_TAGS.getOperation());
+
 		return Command.GET_TAGS;
 	}
 
 	private Command getTagById(final Scanner keyboard) {
 		printStream.println(GET_TAG_BY_ID.getOperation());
 		printStream.println(TAG_ID_ENTER);
-		return new Command(
-			GET_TAG_BY_ID.getOperationNumber(),
-			Map.of("id", String.valueOf(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(GET_TAG_BY_ID.getOperationNumber())
+			.params(Map.of("id", String.valueOf(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command getTagsByNewsId(final Scanner keyboard) {
 		printStream.println(GET_TAGS_BY_NEWS_ID.getOperation());
 		printStream.println(NEWS_ID_ENTER);
-		return new Command(
-			GET_TAGS_BY_NEWS_ID.getOperationNumber(),
-			Map.of("newsId", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(GET_TAGS_BY_NEWS_ID.getOperationNumber())
+			.params(Map.of("newsId", String.valueOf(getLongWithLowerBound(NEWS_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	private Command createTag(final Scanner keyboard) {
@@ -336,19 +354,18 @@ public class MenuHelper {
 			try {
 				printStream.println(CREATE_TAG.getOperation());
 				printStream.println(TAG_NAME_ENTER);
-				String name = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
+				final String name = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
 
-				Map<String, String> body = Map.of("name", name);
-				command = new Command(
-					CREATE_TAG.getOperationNumber(),
-					null,
-					mapper.writeValueAsString(body)
-				);
+				command = Command.builder()
+					.operation(CREATE_TAG.getOperationNumber())
+					.body(mapper.writeValueAsString(Map.of("name", name)))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
 			}
 		}
+
 		return command;
 	}
 
@@ -361,26 +378,29 @@ public class MenuHelper {
 				printStream.println(TAG_ID_ENTER);
 				long authorId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
 				printStream.println(TAG_NAME_ENTER);
-				String name = keyboard.nextLine();
+				final String name = keyboard.nextLine();
 
-				Map<String, String> body = Map.of("id", Long.toString(authorId), "name", name);
-				command =
-					new Command(UPDATE_TAG.getOperationNumber(), null, mapper.writeValueAsString(body));
+				command = Command.builder()
+					.operation(UPDATE_TAG.getOperationNumber())
+					.body(mapper.writeValueAsString(Map.of("id", Long.toString(authorId), "name", name)))
+					.build();
 				isValid = true;
 			} catch (Exception ex) {
 				printStream.println(ex.getMessage());
 			}
 		}
+
 		return command;
 	}
 
 	private Command deleteTag(final Scanner keyboard) {
 		printStream.println(REMOVE_TAG_BY_ID.getOperation());
 		printStream.println(TAG_ID_ENTER);
-		return new Command(
-			REMOVE_TAG_BY_ID.getOperationNumber(),
-			Map.of("id", Long.toString(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))),
-			null);
+
+		return Command.builder()
+			.operation(REMOVE_TAG_BY_ID.getOperationNumber())
+			.params(Map.of("id", Long.toString(getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard))))
+			.build();
 	}
 
 	public String readText(final int minLength,	final int maxLength, final Scanner keyboard) {
@@ -422,11 +442,24 @@ public class MenuHelper {
 		final long numberOfTags = getLongWithLowerBound(minimumIdCount, keyboard);
 		List<Long> tagIds = new ArrayList<>();
 		for (long i = 0; i < numberOfTags; i++) {
-			printStream.println(TAG_ID + " №" +  (i + 1));
+			printStream.println("Enter " + TAG_ID + " №" +  (i + 1));
 			final long tagId = getLongWithLowerBound(TAG_ID_MIN_VALUE, keyboard);
 			tagIds.add(tagId);
 		}
 		return tagIds;
+	}
+
+	private List<String> getTagNames(final Scanner keyboard) {
+		printStream.println(TAGS_NUMBER_ENTER);
+		final long minimumNameCount = 0L;
+		final long numberOfTags = getLongWithLowerBound(minimumNameCount, keyboard);
+		List<String> tagNames = new ArrayList<>();
+		for (long i = 0; i < numberOfTags; i++) {
+			printStream.println("Enter " + TAG_NAME + " №" + (i + 1));
+			final String tagName = readText(TAG_NAME_MIN_LENGTH, TAG_NAME_MAX_LENGTH, keyboard);
+			tagNames.add(tagName);
+		}
+		return tagNames;
 	}
 
 	private boolean userConfirmsOption(final String message, final Scanner keyboard) {

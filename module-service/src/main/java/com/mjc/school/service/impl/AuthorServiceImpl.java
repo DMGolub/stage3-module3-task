@@ -12,6 +12,7 @@ import com.mjc.school.service.validator.annotation.Min;
 import com.mjc.school.service.validator.annotation.NotNull;
 import com.mjc.school.service.validator.annotation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,11 +41,13 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
+	@Transactional
 	public AuthorResponseDto create(@NotNull @Valid final AuthorRequestDto request) {
 		return mapper.modelToDto(authorRepository.create(mapper.dtoToModel(request)));
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AuthorResponseDto readById(@NotNull @Min(ID_VALUE_MIN) final Long id)
 			throws EntityNotFoundException {
 		final Optional<Author> author = authorRepository.readById(id);
@@ -59,6 +62,7 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AuthorResponseDto readAuthorByNewsId(@NotNull @Min(ID_VALUE_MIN) final Long newsId) {
 		if (newsRepository.existById(newsId)) {
 			final Optional<Author> author = authorRepository.readAuthorByNewsId(newsId);
@@ -78,11 +82,13 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<AuthorResponseDto> readAll() {
 		return mapper.modelListToDtoList(authorRepository.readAll());
 	}
 
 	@Override
+	@Transactional
 	public AuthorResponseDto update(@NotNull @Valid final AuthorRequestDto request)
 			throws EntityNotFoundException {
 		final Long id = request.id();
@@ -101,6 +107,7 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		if (authorRepository.existById(id)) {
 			return authorRepository.deleteById(id);

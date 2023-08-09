@@ -3,6 +3,7 @@ package com.mjc.school.service.impl;
 import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.Tag;
+import com.mjc.school.repository.query.NewsSearchQueryParams;
 import com.mjc.school.service.mapper.TagMapper;
 import com.mjc.school.service.dto.TagRequestDto;
 import com.mjc.school.service.dto.TagResponseDto;
@@ -181,14 +182,14 @@ class TagServiceImplTest {
 		void deleteById_shouldReturnTrue_whenRepositoryDeletesEntityById() {
 			final long id = 15L;
 			when(tagRepository.existById(id)).thenReturn(true);
-			when(newsRepository.readByParams(null, id, null, null, null))
-				.thenReturn(Collections.emptyList());
+			final NewsSearchQueryParams params =
+				new NewsSearchQueryParams(null, List.of(id), null, null, null);
+			when(newsRepository.readByParams(params)).thenReturn(Collections.emptyList());
 			when(tagRepository.deleteById(id)).thenReturn(true);
 
 			assertTrue(tagService.deleteById(id));
 			verify(tagRepository, times(1)).existById(id);
-			verify(newsRepository, times(1))
-				.readByParams(null, id, null, null, null);
+			verify(newsRepository, times(1)).readByParams(params);
 			verify(tagRepository, times(1)).deleteById(id);
 		}
 
@@ -196,14 +197,14 @@ class TagServiceImplTest {
 		void deleteById_shouldReturnFalse_whenRepositoryDoesNotDeleteEntityById() {
 			final long id = 99L;
 			when(tagRepository.existById(id)).thenReturn(true);
-			when(newsRepository.readByParams(null, id, null, null, null))
-				.thenReturn(Collections.emptyList());
+			final NewsSearchQueryParams params =
+				new NewsSearchQueryParams(null, List.of(id), null, null, null);
+			when(newsRepository.readByParams(params)).thenReturn(Collections.emptyList());
 			when(tagRepository.deleteById(id)).thenReturn(false);
 
 			assertFalse(tagService.deleteById(id));
 			verify(tagRepository, times(1)).existById(id);
-			verify(newsRepository, times(1))
-				.readByParams(null, id, null, null, null);
+			verify(newsRepository, times(1)).readByParams(params);
 			verify(tagRepository, times(1)).deleteById(id);
 		}
 	}

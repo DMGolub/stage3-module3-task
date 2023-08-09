@@ -4,6 +4,7 @@ import com.mjc.school.repository.NewsRepository;
 import com.mjc.school.repository.TagRepository;
 import com.mjc.school.repository.model.News;
 import com.mjc.school.repository.model.Tag;
+import com.mjc.school.repository.query.NewsSearchQueryParams;
 import com.mjc.school.service.TagService;
 import com.mjc.school.service.mapper.TagMapper;
 import com.mjc.school.service.dto.TagRequestDto;
@@ -13,6 +14,7 @@ import com.mjc.school.service.validator.annotation.Min;
 import com.mjc.school.service.validator.annotation.NotNull;
 import com.mjc.school.service.validator.annotation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,11 +43,13 @@ public class TagServiceImpl implements TagService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<TagResponseDto> readAll() {
 		return tagMapper.modelListToDtoList(tagRepository.readAll());
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public TagResponseDto readById(@NotNull @Min(ID_VALUE_MIN) final Long id)
 			throws EntityNotFoundException {
 		final Optional<Tag> tag = tagRepository.readById(id);
@@ -60,6 +64,7 @@ public class TagServiceImpl implements TagService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<TagResponseDto> readTagsByNewsId(@NotNull @Min(ID_VALUE_MIN) final Long newsId) {
 		if (newsRepository.existById(newsId)) {
 			return tagMapper.modelListToDtoList(tagRepository.readTagsByNewsId(newsId));
@@ -71,12 +76,14 @@ public class TagServiceImpl implements TagService {
 	}
 
 	@Override
+	@Transactional
 	public TagResponseDto create(@NotNull @Valid final TagRequestDto request) {
 		final Tag tag = tagRepository.create(tagMapper.dtoToModel(request));
 		return tagMapper.modelToDto(tag);
 	}
 
 	@Override
+	@Transactional
 	public TagResponseDto update(@NotNull @Valid final TagRequestDto request) {
 		final Long id = request.id();
 		if (id != null && tagRepository.existById(id)) {
@@ -91,10 +98,12 @@ public class TagServiceImpl implements TagService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		if (tagRepository.existById(id)) {
-			List<News> newsWithTag =
-				newsRepository.readByParams(null, id, null, null, null);
+			NewsSearchQueryParams params =
+				new NewsSearchQueryParams(null, List.of(id), null, null, null);
+			List<News> newsWithTag = newsRepository.readByParams(params);
 			for (News news : newsWithTag) {
 				news.getTags().removeIf(t -> id.equals(t.getId()));
 				newsRepository.update(news);

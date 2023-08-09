@@ -11,10 +11,12 @@ import com.mjc.school.service.mapper.NewsMapper;
 import com.mjc.school.service.dto.NewsRequestDto;
 import com.mjc.school.service.dto.NewsResponseDto;
 import com.mjc.school.service.exception.EntityNotFoundException;
+import com.mjc.school.service.query.NewsQueryParams;
 import com.mjc.school.service.validator.annotation.Min;
 import com.mjc.school.service.validator.annotation.NotNull;
 import com.mjc.school.service.validator.annotation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,7 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
+	@Transactional
 	public NewsResponseDto create(@NotNull @Valid final NewsRequestDto request) throws EntityNotFoundException {
 		final News news = mapper.dtoToModel(request);
 		news.setAuthor(getAuthor(request.authorId()));
@@ -59,6 +62,7 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public NewsResponseDto readById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		Optional<News> news = newsRepository.readById(id);
 		if (news.isPresent()) {
@@ -72,23 +76,20 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
-	public List<NewsResponseDto> readNewsByParams(
-		final String tagName,
-		final Long tagId,
-		final String authorName,
-		final String title,
-		final String content
-	) {
+	@Transactional(readOnly = true)
+	public List<NewsResponseDto> readNewsByParams(@NotNull final NewsQueryParams newsQueryParams) {
 		return mapper.modelListToDtoList(
-			newsRepository.readByParams(tagName, tagId, authorName, title, content));
+			newsRepository.readByParams(mapper.mapQueryParams(newsQueryParams)));
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<NewsResponseDto> readAll() {
 		return mapper.modelListToDtoList(newsRepository.readAll());
 	}
 
 	@Override
+	@Transactional
 	public NewsResponseDto update(@NotNull @Valid final NewsRequestDto request) throws EntityNotFoundException {
 		final Long id = request.id();
 		if (id != null) {
@@ -109,6 +110,7 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
+	@Transactional
 	public boolean deleteById(@NotNull @Min(ID_VALUE_MIN) final Long id) throws EntityNotFoundException {
 		if (newsRepository.existById(id)) {
 			return newsRepository.deleteById(id);

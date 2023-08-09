@@ -1,20 +1,22 @@
 package com.mjc.school.repository.config;
 
-/*import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.springframework.context.annotation.Bean;*/
+import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-/*import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;*/
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/*import java.util.Properties;*/
+import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
+@EnableJpaAuditing
 public class RepositoryConfig {
-	/*
+
 	private static final String[] ENTITY_PACKAGES = {"com.mjc.school.repository.model"};
 
 	@Bean
@@ -55,5 +57,4 @@ public class RepositoryConfig {
 		properties.setProperty("hibernate.hbm2ddl.auto", "update");
 		return properties;
 	}
-	 */
 }
